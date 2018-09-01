@@ -17,6 +17,7 @@ $VMName = -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
 $VMSize ="Standard_DS2"
 $ServerSKU="2016-Datacenter"
 $setupAccount='sp_setup'
+$scriptsContainer="scripts"
 #$autoSPInstallerScriptsUrl='https://github.com/brianlala/AutoSPInstaller/archive/master.zip'
 #endregion
 
@@ -24,42 +25,12 @@ $setupAccount='sp_setup'
 
 Login-AzureRmAccount
 Get-AzureRmSubscription| select -First 1 | Select-AzureRmSubscription
-
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 
 $storageAcct=New-AzureRmStorageAccount -Name $randSAName -ResourceGroupName $resourceGroupName -SkuName $SASKU -Location $location 
 $storageAccountShare=New-AzureStorageShare  -Name $storageAccountShareName  -Context $storageAcct.Context 
+Start-Sleep -Seconds 30
 $ScriptBlobKey = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $randSAName
-#$password=ConvertTo-SecureString -String $ScriptBlobKey -AsPlainText -Force
-#New-SmbMapping -LocalPath X: -RemotePath "\\$randSAName.file.core.windows.net\$storageAccountShareName" -username "$randSAName" -Password $ScriptBlobKey[0].Value
-net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $ScriptBlobKey[0].Value /user:$randSAName
-#New-Item -Path "$driveToMap" -ItemType Directory -Name 'SharePointInstall'
-(New-Object System.Net.WebClient).DownloadFile($sharepointBinaryUrl, $sharepointBinaryLocation)
-
-
-### download SQL image
-(New-Object System.Net.WebClient).DownloadFile($sqlBinaryUrl, $sharepointBinaryLocation)
-
-### download GitHub Scripts and Config and create folder structure
-#(New-Object System.Net.WebClient).DownloadFile($autoSPInstallerScriptsUrl, "$driveToMap\autospinstaller.zip")
-
-
-
-
-### edit passwords in autospinstaller config
-$xml=Get-Content "$driveToMap\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
-$xml=$xml -replace "QD59r3cDZk74pYdYxF87", $yourAdminPassword
-Set-Content -Value $xml -Path "$driveToMap\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
-
-### extract sharepoint and SQL images
-
-$mountIso=Mount-DiskImage -ImagePath "$driveToMap\SQLServer2016SP2-FullSlipstream-x64-ENU.iso" -PassThru
-$isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
-
-Copy-Item -Container "$isoDriveLetter`:" -Destination "$driveToMap\SQLMedia" -Recurse
-Dismount-DiskImage -InputObject $mountIso
-
-#extract SharePoint iso
 
 
 
@@ -123,6 +94,13 @@ Write-Output "Creating the VM" | timestamp
 $NewVM = New-AzureRmVM -ResourceGroupName $resourceGroupName -Location $Location -VM $vm 
 Write-Output "VM creation complete" | timestamp
 
+###create scripts container
+New-AzureStorageContainer -Name $scriptsContainer -Context $storageAcct.Context -Permission Off
+
+#download locally First and Second Boot Script and edit the Storage Account Keys and passwords
+
+
+
 #Now make a DC by running the first boot script
 
 $ScriptBlobURL = "https://$randSAName.blob.core.windows.net/scripts/"
@@ -176,3 +154,46 @@ Remove-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName 
 Write-Output "Installation complete" | timestamp
 
 #endregion JohnSavill
+
+
+
+
+
+
+
+
+
+
+
+
+
+net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $ScriptBlobKey[0].Value /user:$randSAName
+#New-Item -Path "$driveToMap" -ItemType Directory -Name 'SharePointInstall'
+(New-Object System.Net.WebClient).DownloadFile($sharepointBinaryUrl, $sharepointBinaryLocation)
+
+
+### download SQL image
+(New-Object System.Net.WebClient).DownloadFile($sqlBinaryUrl, $sharepointBinaryLocation)
+
+### download GitHub Scripts and Config and create folder structure
+#(New-Object System.Net.WebClient).DownloadFile($autoSPInstallerScriptsUrl, "$driveToMap\autospinstaller.zip")
+
+
+
+
+### edit passwords in autospinstaller config
+$xml=Get-Content "$driveToMap\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
+$xml=$xml -replace "QD59r3cDZk74pYdYxF87", $yourAdminPassword
+Set-Content -Value $xml -Path "$driveToMap\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
+
+### extract sharepoint and SQL images
+
+$mountIso=Mount-DiskImage -ImagePath "$driveToMap\SQLServer2016SP2-FullSlipstream-x64-ENU.iso" -PassThru
+$isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
+
+Copy-Item -Container "$isoDriveLetter`:" -Destination "$driveToMap\SQLMedia" -Recurse
+Dismount-DiskImage -InputObject $mountIso
+
+#extract SharePoint iso
+
+
