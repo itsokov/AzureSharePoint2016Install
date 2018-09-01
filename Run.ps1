@@ -18,6 +18,7 @@ $VMSize ="Standard_DS2"
 $ServerSKU="2016-Datacenter"
 $setupAccount='sp_setup'
 $scriptsContainer="scripts"
+$firstBootScriptSource=
 #$autoSPInstallerScriptsUrl='https://github.com/brianlala/AutoSPInstaller/archive/master.zip'
 #endregion
 
@@ -98,6 +99,11 @@ Write-Output "VM creation complete" | timestamp
 New-AzureStorageContainer -Name $scriptsContainer -Context $storageAcct.Context -Permission Off
 
 #download locally First and Second Boot Script and edit the Storage Account Keys and passwords
+New-Item -Path c:\ -Name Temp -ItemType Directory
+DownloadFilesFromRepo -Owner itsokov -Repository AzureSharePoint2016Install  -DestinationPath C:\Temp\
+
+$script=Get-Content C:\temp\BootScripts\FirstBoot.ps1
+$script -ma
 
 
 
@@ -197,3 +203,43 @@ Dismount-DiskImage -InputObject $mountIso
 #extract SharePoint iso
 
 
+function DownloadFilesFromRepo {
+Param(
+    [string]$Owner,
+    [string]$Repository,
+    [string]$Path,
+    [string]$DestinationPath
+    )
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    $baseUri = "https://api.github.com/"
+    $args = "repos/$Owner/$Repository/contents/$Path"
+    $wr = Invoke-WebRequest -Uri $($baseuri+$args)
+    $objects = $wr.Content | ConvertFrom-Json
+    $files = $objects | where {$_.type -eq "file"} | Select -exp download_url
+    $directories = $objects | where {$_.type -eq "dir"}
+    
+    $directories | ForEach-Object { 
+        DownloadFilesFromRepo -Owner $Owner -Repository $Repository -Path $_.path -DestinationPath $($DestinationPath+$_.name)
+    }
+
+    
+    if (-not (Test-Path $DestinationPath)) {
+        # Destination path does not exist, let's create it
+        try {
+            New-Item -Path $DestinationPath -ItemType Directory -ErrorAction Stop
+        } catch {
+            throw "Could not create path '$DestinationPath'!"
+        }
+    }
+
+    foreach ($file in $files) {
+        $fileDestination = Join-Path $DestinationPath (Split-Path $file -Leaf)
+        try {
+            Invoke-WebRequest -Uri $file -OutFile $fileDestination -ErrorAction Stop -Verbose
+            "Grabbed '$($file)' to '$fileDestination'"
+        } catch {
+            throw "Unable to download '$($file.path)'"
+        }
+    }
+
+}
