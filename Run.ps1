@@ -18,7 +18,6 @@ $VMSize ="Standard_DS2"
 $ServerSKU="2016-Datacenter"
 $setupAccount='sp_setup'
 $scriptsContainer="scripts"
-$firstBootScriptSource=
 #$autoSPInstallerScriptsUrl='https://github.com/brianlala/AutoSPInstaller/archive/master.zip'
 #endregion
 
@@ -103,13 +102,31 @@ New-Item -Path c:\ -Name Temp -ItemType Directory
 DownloadFilesFromRepo -Owner itsokov -Repository AzureSharePoint2016Install  -DestinationPath C:\Temp\
 
 $script=Get-Content C:\temp\BootScripts\FirstBoot.ps1
-$script -ma
+$script=$script -replace "Pa55word",$yourAdminPassword
+Set-Content -Value $script -Path C:\temp\BootScripts\FirstBoot.ps1 -Encoding UTF8
 
+$script=Get-Content C:\temp\BootScripts\SecondBoot.ps1
+$script=$script -replace "Pa55word",$yourAdminPassword
+$script=$script -replace "<storage account name>",$randSAName
+$script=$script -replace "<storage account key>",$ScriptBlobKey
+$script=$script -replace "<SAShareName>",$storageAccountShareName
+Set-Content -Value $script -Path C:\temp\BootScripts\SecondBoot.ps1 -Encoding UTF8
 
+#Upload these scripts to the blob
+
+$blobName = "FirstBoot.ps1" 
+$localFile = "C:\Temp\BootScripts\$blobName" 
+Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer ` 
+        -Blob $blobName -Context $storageAcct.Context
+
+$blobName = "SecondBoot.ps1" 
+$localFile = "C:\Temp\BootScripts\$blobName" 
+Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer ` 
+        -Blob $blobName -Context $storageAcct.Context
 
 #Now make a DC by running the first boot script
 
-$ScriptBlobURL = "https://$randSAName.blob.core.windows.net/scripts/"
+$ScriptBlobURL = "https://$randSAName.blob.core.windows.net/$scriptsContainer/"
  
 $ScriptName = "FirstBoot.ps1"
 $ExtensionName = 'FirstBootScript'
@@ -121,7 +138,7 @@ $timestamp = (Get-Date).Ticks
 $ScriptLocation = $ScriptBlobURL + $ScriptName
 $ScriptExe = ".\$ScriptName"
  
-$PrivateConfiguration = @{"storageAccountName" = "$$randSAName";"storageAccountKey" = "$ScriptBlobKey"} 
+$PrivateConfiguration = @{"storageAccountName" = "$randSAName";"storageAccountKey" = "$ScriptBlobKey"} 
 $PublicConfiguration = @{"fileUris" = [Object[]]"$ScriptLocation";"timestamp" = "$timestamp";"commandToExecute" = "powershell.exe -ExecutionPolicy Unrestricted -Command $ScriptExe"}
  
 Write-Output "Injecting First Boot PowerShell" | timestamp
@@ -145,7 +162,7 @@ $timestamp = (Get-Date).Ticks
 $ScriptLocation = $ScriptBlobURL + $ScriptName
 $ScriptExe = ".\$ScriptName"
  
-$PrivateConfiguration = @{"storageAccountName" = "$$randSAName";"storageAccountKey" = "$ScriptBlobKey"} 
+$PrivateConfiguration = @{"storageAccountName" = "$randSAName";"storageAccountKey" = "$ScriptBlobKey"} 
 $PublicConfiguration = @{"fileUris" = [Object[]]"$ScriptLocation";"timestamp" = "$timestamp";"commandToExecute" = "powershell.exe -ExecutionPolicy Unrestricted -Command $ScriptExe"}
  
 Write-Output "Injecting Second Boot PowerShell" | timestamp
@@ -169,7 +186,7 @@ Write-Output "Installation complete" | timestamp
 
 
 
-
+<#
 
 
 
@@ -202,6 +219,7 @@ Dismount-DiskImage -InputObject $mountIso
 
 #extract SharePoint iso
 
+#>
 
 function DownloadFilesFromRepo {
 Param(

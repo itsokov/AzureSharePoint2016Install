@@ -1,4 +1,12 @@
-﻿#Add domain admin called Administrator
+﻿#region variables
+$storkey = '<storage account key>'
+$sharepointBinaryUrl='https://download.microsoft.com/download/0/0/4/004EE264-7043-45BF-99E3-3F74ECAE13E5/officeserver.img'
+$driveToMap='X:'
+$sharepointBinaryLocation="$driveToMap\officeserver.img"
+
+#endregion variables
+
+#Add domain admin called Administrator
 New-ADUser -Name 'administrator' -GivenName 'admin' -Surname 'istrator' `
     -SamAccountName 'administrator' -UserPrincipalName 'administrator@pocdom.local' `
     -AccountPassword (ConvertTo-SecureString -AsPlainText 'Pa55word' -Force) `
@@ -9,10 +17,13 @@ Add-ADGroupMember 'Domain Admins' administrator
 New-NetFirewallRule -DisplayName "MSSQL ENGINE TCP" -Direction Inbound -LocalPort 1433 -Protocol TCP -Action Allow
 New-NetFirewallRule -DisplayName "SharePoint TCP 2013" -Direction Inbound -LocalPort 2013 -Protocol TCP -Action Allow
 
-$storkey = '<storage account key>'
-New-SmbMapping -LocalPath X: -RemotePath \\<storage account name>.file.core.windows.net\pocassets -username '<storage account name>' -Password $storkey
+
+New-SmbMapping -LocalPath X: -RemotePath \\<storage account name>.file.core.windows.net\<SAShareName> -username '<storage account name>' -Password $storkey
 
 #SharePoint Setup files
+New-Item -Path "$driveToMap" -ItemType Directory -Name 'SharePointInstall'
+(New-Object System.Net.WebClient).DownloadFile($sharepointBinaryUrl, $sharepointBinaryLocation)
+
 Copy-Item -Recurse -Path X:\AutoSPInstaller -Destination C:\Assets\
 #Configuration files that make up SQL and SharePoint install including the SharePoint backup
 Copy-Item -Recurse -Path X:\POCAzureScripts\* -Destination C:\Assets\
