@@ -3,6 +3,8 @@ $storkey = '<storage account key>'
 $sharepointBinaryUrl='https://download.microsoft.com/download/0/0/4/004EE264-7043-45BF-99E3-3F74ECAE13E5/officeserver.img'
 $driveToMap='X:'
 $sharepointBinaryLocation="$driveToMap\officeserver.img"
+$sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP2-FullSlipstream-x64-ENU.iso'
+$sqlBinaryLocation="$driveToMap\SQLServer2016SP2-FullSlipstream-x64-ENU.iso"
 
 #endregion variables
 
@@ -18,11 +20,14 @@ New-NetFirewallRule -DisplayName "MSSQL ENGINE TCP" -Direction Inbound -LocalPor
 New-NetFirewallRule -DisplayName "SharePoint TCP 2013" -Direction Inbound -LocalPort 2013 -Protocol TCP -Action Allow
 
 
-New-SmbMapping -LocalPath X: -RemotePath \\<storage account name>.file.core.windows.net\<SAShareName> -username '<storage account name>' -Password $storkey
+New-SmbMapping -LocalPath $driveToMap -RemotePath \\<storage account name>.file.core.windows.net\<SAShareName> -username '<storage account name>' -Password $storkey
 
 #SharePoint Setup files
 New-Item -Path "$driveToMap" -ItemType Directory -Name 'SharePointInstall'
 (New-Object System.Net.WebClient).DownloadFile($sharepointBinaryUrl, $sharepointBinaryLocation)
+
+### download SQL image
+(New-Object System.Net.WebClient).DownloadFile($sqlBinaryUrl, $sharepointBinaryLocation)
 
 Copy-Item -Recurse -Path X:\AutoSPInstaller -Destination C:\Assets\
 #Configuration files that make up SQL and SharePoint install including the SharePoint backup

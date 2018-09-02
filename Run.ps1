@@ -7,7 +7,7 @@ $sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP
 $tempDownloadLocation='C:\temp'
 $storageAccountShareName="assets"
 $randSAName= -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
-$SASKU = 'Premium_LRS'
+$SASKU = 'Standard_LRS'
 $driveToMap='X:'
 $sharepointBinaryLocation="$driveToMap\officeserver.img"
 $sqlBinaryLocation="$driveToMap\SQLServer2016SP2-FullSlipstream-x64-ENU.iso"
@@ -23,14 +23,14 @@ $scriptsContainer="scripts"
 
 
 
-Login-AzureRmAccount
+#Login-AzureRmAccount
 Get-AzureRmSubscription| select -First 1 | Select-AzureRmSubscription
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 
 $storageAcct=New-AzureRmStorageAccount -Name $randSAName -ResourceGroupName $resourceGroupName -SkuName $SASKU -Location $location 
 $storageAccountShare=New-AzureStorageShare  -Name $storageAccountShareName  -Context $storageAcct.Context 
-Start-Sleep -Seconds 30
 $ScriptBlobKey = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $randSAName
+$ScriptBlobKey=$ScriptBlobKey[0].Value
 
 
 
@@ -97,7 +97,7 @@ Write-Output "VM creation complete" | timestamp
 ###create scripts container
 New-AzureStorageContainer -Name $scriptsContainer -Context $storageAcct.Context -Permission Off
 
-#download locally First and Second Boot Script and edit the Storage Account Keys and passwords
+#download locally Scripts from GitHyb and edit the Storage Account Keys and passwords
 New-Item -Path c:\ -Name Temp -ItemType Directory
 DownloadFilesFromRepo -Owner itsokov -Repository AzureSharePoint2016Install  -DestinationPath C:\Temp\
 
@@ -112,17 +112,24 @@ $script=$script -replace "<storage account key>",$ScriptBlobKey
 $script=$script -replace "<SAShareName>",$storageAccountShareName
 Set-Content -Value $script -Path C:\temp\BootScripts\SecondBoot.ps1 -Encoding UTF8
 
+$xml=Get-Content "C:\temp\AutoSPInstaller\AutoSPInstallerInput.xml"
+$xml=$xml -replace "QD59r3cDZk74pYdYxF87", $yourAdminPassword
+Set-Content -Value $xml -Path "C:\temp\AutoSPInstaller\AutoSPInstallerInput.xml"
+
+
 #Upload these scripts to the blob
 
 $blobName = "FirstBoot.ps1" 
 $localFile = "C:\Temp\BootScripts\$blobName" 
-Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer ` 
-        -Blob $blobName -Context $storageAcct.Context
+Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context
 
 $blobName = "SecondBoot.ps1" 
 $localFile = "C:\Temp\BootScripts\$blobName" 
-Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer ` 
-        -Blob $blobName -Context $storageAcct.Context
+Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context
+
+$blobName = "AutoSPInstaller" 
+$localFile = "C:\Temp\BootScripts\$blobName" 
+Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context
 
 #Now make a DC by running the first boot script
 
@@ -132,7 +139,7 @@ $ScriptName = "FirstBoot.ps1"
 $ExtensionName = 'FirstBootScript'
 $ExtensionType = 'CustomScriptExtension' 
 $Publisher = 'Microsoft.Compute'  
-$Version = '1.8'
+$Version = '1.9'
 $timestamp = (Get-Date).Ticks
  
 $ScriptLocation = $ScriptBlobURL + $ScriptName
