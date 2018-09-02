@@ -49,23 +49,27 @@ Dismount-DiskImage -InputObject $mountIso
 #Configuration files that make up SQL and SharePoint install including the SharePoint backup
 #Copy-Item -Recurse -Path X:\POCAzureScripts\* -Destination C:\Assets\
 
-#SQL Install
-."$driveToMap\SQL2016SP1\Setup.exe" /ConfigurationFile="$driveToMap\ConfigurationFile.ini"
-
-#Remove-SmbMapping -LocalPath $driveToMap -Force
-
-#SharePoint Install
-$AccountsToCreate = @("SP_CacheSuperUser","SP_CacheSuperReader","SP_Services","SP_PortalAppPool","SP_ProfilesAppPool","SP_SearchService","SP_SearchContent","SP_ProfileSync")
+#service account creation Install
+$AccountsToCreate = @("SP_CacheSuperUser","SP_CacheSuperReader","SP_Services","SP_PortalAppPool","SP_ProfilesAppPool","SP_SearchService","SP_SearchContent","SP_ProfileSync","SP_SQL")
 
 foreach($account in $AccountsToCreate)
 {
   New-ADUser -Name $account -GivenName $account -Surname $account `
-    -SamAccountName $account -UserPrincipalName $account@$netbiosname.local `
+    -SamAccountName $account -UserPrincipalName "$account`@$netbiosname.local" `
     -AccountPassword (ConvertTo-SecureString -AsPlainText 'Pa55word' -Force) `
     -Enabled $true
 }
 
-#Perform the actual install
+
+#SQL Install
+$sqlsysadminaccounts = $env:USERDOMAIN + "\" + $env:USERNAME
+$command = "cmd /c $setup /ACTION=Install /IACCEPTSQLSERVERLICENSETERMS /FEATURES=SQLEngine,ADV_SSMS /INSTANCENAME=MSSQLSERVER /Q /SQLSVCACCOUNT=SP_SQL /SQLSVCPASSWORD=Pa55w0rd /INDICATEPROGRESS /SQLSYSADMINACCOUNTS=$sqlsysadminaccounts"
+Invoke-Expression -Command:$command
+
+#Remove-SmbMapping -LocalPath $driveToMap -Force
+
+
+#Perform SharePoint install
 $SPInstallJob = Start-Job -ScriptBlock {"$driveToMap\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat"}
 get-job | Wait-Job
 Remove-SmbMapping *
