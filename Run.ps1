@@ -127,7 +127,7 @@ Set-Content -Value $script -Path C:\temp\BootScripts\SecondBoot.ps1 -Encoding UT
 
 $xml=Get-Content "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
 $xml=$xml -replace "QD59r3cDZk74pYdYxF87", $yourAdminPassword
-Set-Content -Value $xml -Path "C:\temp\AutoSPInstaller\AutoSPInstallerInput.xml"
+Set-Content -Value $xml -Path "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
 
 #edit the sql script, below I need to upload it 
 
@@ -141,7 +141,7 @@ $blobName = "SecondBoot.ps1"
 $localFile = "C:\Temp\BootScripts\$blobName" 
 Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context
 
-Copy-Item -Path C:\temp\SP -Destination $driveToMap
+Copy-Item -Path C:\temp\SP -Destination $driveToMap -recurse
 
 
 #Now make a DC by running the first boot script
