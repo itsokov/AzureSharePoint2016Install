@@ -109,9 +109,9 @@ $shell_app=new-object -com shell.application
 $zip_file = $shell_app.namespace($file) 
 $destination = $shell_app.namespace("c:\temp") 
 $destination.Copyhere($zip_file.items())
-Move-Item -Path C:\Temp\AzureSharePoint2016Install-master\* -Destination C:\Temp
-Remove-Item  C:\Temp\AzureSharePoint2016Install-master -Force
-Remove-Item $file -Force
+Copy-Item -Path C:\Temp\AzureSharePoint2016Install-master\* -Destination C:\Temp -confirm:$false -Force
+Remove-Item  C:\Temp\AzureSharePoint2016Install-master -Force -Confirm:$false -Recurse
+Remove-Item $file -Force -Confirm:$false
 
 
 $script=Get-Content C:\temp\BootScripts\FirstBoot.ps1
@@ -201,7 +201,7 @@ Write-Output "Installation complete" | timestamp
 
 
 
-
+###delete share and blob container
 
 
 
