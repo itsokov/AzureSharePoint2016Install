@@ -109,7 +109,7 @@ $shell_app=new-object -com shell.application
 $zip_file = $shell_app.namespace($file) 
 $destination = $shell_app.namespace("c:\temp") 
 $destination.Copyhere($zip_file.items())
-Copy-Item -Path C:\Temp\AzureSharePoint2016Install-master\* -Destination C:\Temp -confirm:$false -Force
+Copy-Item -Path C:\Temp\AzureSharePoint2016Install-master\* -Destination C:\Temp -confirm:$false -Force -Recurse
 Remove-Item  C:\Temp\AzureSharePoint2016Install-master -Force -Confirm:$false -Recurse
 Remove-Item $file -Force -Confirm:$false
 
