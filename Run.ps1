@@ -135,13 +135,13 @@ Set-Content -Value $xml -Path "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.x
 
 $blobName = "FirstBoot.ps1" 
 $localFile = "C:\Temp\BootScripts\$blobName" 
-Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context
+Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context -Force
 
 $blobName = "SecondBoot.ps1" 
 $localFile = "C:\Temp\BootScripts\$blobName" 
-Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context
+Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context -Force
 
-Copy-Item -Path C:\temp\SP -Destination $driveToMap -recurse
+Copy-Item -Path C:\temp\SP -Destination $driveToMap -recurse -Force
 
 
 #Now make a DC by running the first boot script
