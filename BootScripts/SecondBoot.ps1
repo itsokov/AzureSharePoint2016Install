@@ -35,7 +35,7 @@ Get-Job | Wait-Job
 $mountIso=Mount-DiskImage -ImagePath "$sqlBinaryLocation" -PassThru
 $isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
 
-Copy-Item -Container "$isoDriveLetter`:" -Destination "$driveToMap\SQLMedia" -Recurse
+Copy-Item -Container "$isoDriveLetter`:" -Destination "$driveToMap\SQL2016SP1" -Recurse
 Dismount-DiskImage -InputObject $mountIso
 
 #extract SharePoint
@@ -50,7 +50,7 @@ Dismount-DiskImage -InputObject $mountIso
 Copy-Item -Recurse -Path X:\POCAzureScripts\* -Destination C:\Assets\
 
 #SQL Install
-."$driveToMap\SQLServer2012SP3\Setup.exe" /ConfigurationFile="$driveToMap\ConfigurationFile.ini"
+."$driveToMap\SQL2016SP1\Setup.exe" /ConfigurationFile="$driveToMap\ConfigurationFile.ini"
 
 #Remove-SmbMapping -LocalPath $driveToMap -Force
 
