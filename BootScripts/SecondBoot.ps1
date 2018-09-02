@@ -25,7 +25,7 @@ New-NetFirewallRule -DisplayName "SharePoint TCP 2013" -Direction Inbound -Local
 net use $driveToMap "\\<storage account name>.file.core.windows.net\<SAShareName>" $ScriptBlobKey /user:<storage account name> 
 
 #SharePoint Setup files
-New-Item -Path "$driveToMap" -ItemType Directory -Name 'SharePointInstall'
+New-Item -Path "$driveToMap\" -ItemType Directory -Name 'SharePointInstall'
 Start-Job -Name SP_Download -ScriptBlock {(New-Object System.Net.WebClient).DownloadFile($sharepointBinaryUrl, $sharepointBinaryLocation)}
 
 ### download SQL image
