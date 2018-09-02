@@ -18,12 +18,12 @@ $VMSize ="Standard_DS2"
 $ServerSKU="2016-Datacenter"
 $setupAccount='sp_setup'
 $scriptsContainer="scripts"
-#$autoSPInstallerScriptsUrl='https://github.com/brianlala/AutoSPInstaller/archive/master.zip'
+$gitHubAssets='https://github.com/itsokov/AzureSharePoint2016Install/archive/master.zip'
 #endregion
 
 
 
-#Login-AzureRmAccount
+Login-AzureRmAccount
 Get-AzureRmSubscription| select -First 1 | Select-AzureRmSubscription
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 
@@ -32,7 +32,7 @@ $storageAccountShare=New-AzureStorageShare  -Name $storageAccountShareName  -Con
 $ScriptBlobKey = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $randSAName
 $ScriptBlobKey=$ScriptBlobKey[0].Value
 
-
+net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $ScriptBlobKey /user:$randSAName
 
 #region JohnSavill
 
@@ -99,7 +99,20 @@ New-AzureStorageContainer -Name $scriptsContainer -Context $storageAcct.Context 
 
 #download locally Scripts from GitHyb and edit the Storage Account Keys and passwords
 New-Item -Path c:\ -Name Temp -ItemType Directory
-DownloadFilesFromRepo -Owner itsokov -Repository AzureSharePoint2016Install  -DestinationPath C:\Temp\
+
+$file = "c:\temp\gitassets.zip"
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+(New-Object System.Net.WebClient).DownloadFile($gitHubAssets, "$file")
+
+    # Unzip the file to specified location
+$shell_app=new-object -com shell.application 
+$zip_file = $shell_app.namespace($file) 
+$destination = $shell_app.namespace("c:\temp") 
+$destination.Copyhere($zip_file.items())
+Move-Item -Path C:\Temp\AzureSharePoint2016Install-master\* -Destination C:\Temp
+Remove-Item  C:\Temp\AzureSharePoint2016Install-master -Force
+Remove-Item $file -Force
+
 
 $script=Get-Content C:\temp\BootScripts\FirstBoot.ps1
 $script=$script -replace "Pa55word",$yourAdminPassword
@@ -112,12 +125,13 @@ $script=$script -replace "<storage account key>",$ScriptBlobKey
 $script=$script -replace "<SAShareName>",$storageAccountShareName
 Set-Content -Value $script -Path C:\temp\BootScripts\SecondBoot.ps1 -Encoding UTF8
 
-$xml=Get-Content "C:\temp\AutoSPInstaller\AutoSPInstallerInput.xml"
+$xml=Get-Content "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
 $xml=$xml -replace "QD59r3cDZk74pYdYxF87", $yourAdminPassword
 Set-Content -Value $xml -Path "C:\temp\AutoSPInstaller\AutoSPInstallerInput.xml"
 
+#edit the sql script, below I need to upload it 
 
-#Upload these scripts to the blob
+#Upload these scripts to the blob or file share
 
 $blobName = "FirstBoot.ps1" 
 $localFile = "C:\Temp\BootScripts\$blobName" 
@@ -127,9 +141,8 @@ $blobName = "SecondBoot.ps1"
 $localFile = "C:\Temp\BootScripts\$blobName" 
 Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context
 
-$blobName = "AutoSPInstaller" 
-$localFile = "C:\Temp\$blobName" 
-Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context
+Copy-Item -Path C:\temp\SP -Destination $driveToMap
+
 
 #Now make a DC by running the first boot script
 
@@ -228,43 +241,3 @@ Dismount-DiskImage -InputObject $mountIso
 
 #>
 
-function DownloadFilesFromRepo {
-Param(
-    [string]$Owner,
-    [string]$Repository,
-    [string]$Path,
-    [string]$DestinationPath
-    )
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $baseUri = "https://api.github.com/"
-    $args = "repos/$Owner/$Repository/contents/$Path"
-    $wr = Invoke-WebRequest -Uri $($baseuri+$args)
-    $objects = $wr.Content | ConvertFrom-Json
-    $files = $objects | where {$_.type -eq "file"} | Select -exp download_url
-    $directories = $objects | where {$_.type -eq "dir"}
-    
-    $directories | ForEach-Object { 
-        DownloadFilesFromRepo -Owner $Owner -Repository $Repository -Path $_.path -DestinationPath $($DestinationPath+$_.name)
-    }
-
-    
-    if (-not (Test-Path $DestinationPath)) {
-        # Destination path does not exist, let's create it
-        try {
-            New-Item -Path $DestinationPath -ItemType Directory -ErrorAction Stop
-        } catch {
-            throw "Could not create path '$DestinationPath'!"
-        }
-    }
-
-    foreach ($file in $files) {
-        $fileDestination = Join-Path $DestinationPath (Split-Path $file -Leaf)
-        try {
-            Invoke-WebRequest -Uri $file -OutFile $fileDestination -ErrorAction Stop -Verbose
-            "Grabbed '$($file)' to '$fileDestination'"
-        } catch {
-            throw "Unable to download '$($file.path)'"
-        }
-    }
-
-}
