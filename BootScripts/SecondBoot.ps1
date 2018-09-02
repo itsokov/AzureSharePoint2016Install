@@ -21,7 +21,7 @@ New-NetFirewallRule -DisplayName "MSSQL ENGINE TCP" -Direction Inbound -LocalPor
 New-NetFirewallRule -DisplayName "SharePoint TCP 2013" -Direction Inbound -LocalPort 2013 -Protocol TCP -Action Allow
 
 
-New-SmbMapping -LocalPath $driveToMap -RemotePath \\<storage account name>.file.core.windows.net\<SAShareName> -username '<storage account name>' -Password $storkey
+New-SmbMapping -LocalPath $driveToMap -RemotePath \\<storage account name>.file.core.windows.net\<SAShareName> -username '<storage account name>' -Password $storkey -Persistent 
 
 #SharePoint Setup files
 New-Item -Path "$driveToMap" -ItemType Directory -Name 'SharePointInstall'
@@ -68,3 +68,4 @@ foreach($account in $AccountsToCreate)
 #Perform the actual install
 $SPInstallJob = Start-Job -ScriptBlock {"$driveToMap\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat"}
 get-job | Wait-Job
+Remove-SmbMapping *
