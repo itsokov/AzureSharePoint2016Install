@@ -47,7 +47,7 @@ Dismount-DiskImage -InputObject $mountIso
 
 #Copy-Item -Recurse -Path X:\AutoSPInstaller -Destination C:\Assets\
 #Configuration files that make up SQL and SharePoint install including the SharePoint backup
-Copy-Item -Recurse -Path X:\POCAzureScripts\* -Destination C:\Assets\
+#Copy-Item -Recurse -Path X:\POCAzureScripts\* -Destination C:\Assets\
 
 #SQL Install
 ."$driveToMap\SQL2016SP1\Setup.exe" /ConfigurationFile="$driveToMap\ConfigurationFile.ini"
