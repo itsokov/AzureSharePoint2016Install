@@ -1,4 +1,11 @@
-﻿#Bring data disks online and initialize them
+﻿#region variables
+
+$netbiosname = 'contoso'
+$fqdomname = "$netbiosname.local"
+
+#endregion
+
+#Bring data disks online and initialize them
 Get-Disk | Where-Object PartitionStyle –Eq "RAW"| Initialize-Disk -PartitionStyle GPT   
 #Change CD drive letter
 $drv = Get-WmiObject win32_volume -filter 'DriveLetter = "E:"'
@@ -12,15 +19,13 @@ Get-Disk -Number 3 | New-Partition -UseMaximumSize -DriveLetter F | Format-Volum
 Import-Module "Servermanager" #For Add-WindowsFeature
 Add-WindowsFeature AD-Domain-Services, DNS -IncludeManagementTools
 
-$netbiosname = 'POCDom'
-$fqdomname = 'pocdom.local'
-$NTDSPath = 'e:\ntds'
-$NTDSLogPath = 'e:\ntdslogs'
-$SYSVOLPath = 'e:\sysvol'
-
 $SafePassPlain = 'Pa55word'
 $SafePass = ConvertTo-SecureString -string $SafePassPlain `
     -AsPlainText -force
+
+$NTDSPath = 'e:\ntds'
+$NTDSLogPath = 'e:\ntdslogs'
+$SYSVOLPath = 'e:\sysvol'
   
 Install-ADDSForest -DomainName $fqdomname -DomainNetBIOSName $netbiosname `
 	-SafemodeAdministratorPassword $SafePass -SkipPreChecks `

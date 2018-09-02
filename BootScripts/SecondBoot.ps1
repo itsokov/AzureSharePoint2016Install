@@ -5,12 +5,13 @@ $driveToMap='X:'
 $sharepointBinaryLocation="$driveToMap\officeserver.img"
 $sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP2-FullSlipstream-x64-ENU.iso'
 $sqlBinaryLocation="$driveToMap\SQLServer2016SP2-FullSlipstream-x64-ENU.iso"
+$netbiosname = 'contoso'
 
 #endregion variables
 
 #Add domain admin called Administrator
 New-ADUser -Name 'administrator' -GivenName 'admin' -Surname 'istrator' `
-    -SamAccountName 'administrator' -UserPrincipalName 'administrator@pocdom.local' `
+    -SamAccountName 'administrator' -UserPrincipalName "administrator@$netbiosname.local" `
     -AccountPassword (ConvertTo-SecureString -AsPlainText 'Pa55word' -Force) `
     -Enabled $true
 
@@ -24,19 +25,34 @@ New-SmbMapping -LocalPath $driveToMap -RemotePath \\<storage account name>.file.
 
 #SharePoint Setup files
 New-Item -Path "$driveToMap" -ItemType Directory -Name 'SharePointInstall'
-(New-Object System.Net.WebClient).DownloadFile($sharepointBinaryUrl, $sharepointBinaryLocation)
+Start-Job -Name SP_Download -ScriptBlock {(New-Object System.Net.WebClient).DownloadFile($sharepointBinaryUrl, $sharepointBinaryLocation)}
 
 ### download SQL image
-(New-Object System.Net.WebClient).DownloadFile($sqlBinaryUrl, $sharepointBinaryLocation)
+Start-Job -Name SP_Download -ScriptBlock {(New-Object System.Net.WebClient).DownloadFile($sqlBinaryUrl, $sqlBinaryLocation)}
 
-Copy-Item -Recurse -Path X:\AutoSPInstaller -Destination C:\Assets\
+Get-Job | Wait-Job
+
+$mountIso=Mount-DiskImage -ImagePath "$sqlBinaryLocation" -PassThru
+$isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
+
+Copy-Item -Container "$isoDriveLetter`:" -Destination "$driveToMap\SQLMedia" -Recurse
+Dismount-DiskImage -InputObject $mountIso
+
+#extract SharePoint
+$mountIso=Mount-DiskImage -ImagePath "$sharepointBinaryLocation" -PassThru
+$isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
+
+Copy-Item -Container "$isoDriveLetter`:" -Destination "$driveToMap\SP\2016\SharePoint" -Recurse
+Dismount-DiskImage -InputObject $mountIso
+
+#Copy-Item -Recurse -Path X:\AutoSPInstaller -Destination C:\Assets\
 #Configuration files that make up SQL and SharePoint install including the SharePoint backup
 Copy-Item -Recurse -Path X:\POCAzureScripts\* -Destination C:\Assets\
 
 #SQL Install
-.'X:\SQLServer2012SP3\Setup.exe' /ConfigurationFile="C:\Assets\ConfigurationFile.ini"
+."$driveToMap\SQLServer2012SP3\Setup.exe" /ConfigurationFile="C:\Assets\ConfigurationFile.ini"
 
-Remove-SmbMapping -LocalPath X: -Force
+Remove-SmbMapping -LocalPath $driveToMap -Force
 
 #SharePoint Install
 $AccountsToCreate = @("SP_CacheSuperUser","SP_CacheSuperReader","SP_Services","SP_PortalAppPool","SP_ProfilesAppPool","SP_SearchService","SP_SearchContent","SP_ProfileSync")
@@ -44,7 +60,7 @@ $AccountsToCreate = @("SP_CacheSuperUser","SP_CacheSuperReader","SP_Services","S
 foreach($account in $AccountsToCreate)
 {
   New-ADUser -Name $account -GivenName $account -Surname $account `
-    -SamAccountName $account -UserPrincipalName $account@pocdom.local `
+    -SamAccountName $account -UserPrincipalName $account@$netbiosname.local `
     -AccountPassword (ConvertTo-SecureString -AsPlainText 'Pa55word' -Force) `
     -Enabled $true
 }

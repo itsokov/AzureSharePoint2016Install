@@ -128,7 +128,7 @@ $localFile = "C:\Temp\BootScripts\$blobName"
 Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context
 
 $blobName = "AutoSPInstaller" 
-$localFile = "C:\Temp\BootScripts\$blobName" 
+$localFile = "C:\Temp\$blobName" 
 Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context
 
 #Now make a DC by running the first boot script
