@@ -29,7 +29,7 @@ New-Item -Path "$driveToMap\" -ItemType Directory -Name 'SharePointInstall'
 Start-Job -Name SP_Download -ScriptBlock {(New-Object System.Net.WebClient).DownloadFile($sharepointBinaryUrl, $sharepointBinaryLocation)}
 
 ### download SQL image
-Start-Job -Name SP_Download -ScriptBlock {(New-Object System.Net.WebClient).DownloadFile($sqlBinaryUrl, $sqlBinaryLocation)}
+Start-Job -Name SQL_Download -ScriptBlock {(New-Object System.Net.WebClient).DownloadFile($sqlBinaryUrl, $sqlBinaryLocation)}
 
 Get-Job | Wait-Job
 
