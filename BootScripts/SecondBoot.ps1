@@ -50,9 +50,9 @@ Dismount-DiskImage -InputObject $mountIso
 Copy-Item -Recurse -Path X:\POCAzureScripts\* -Destination C:\Assets\
 
 #SQL Install
-."$driveToMap\SQLServer2012SP3\Setup.exe" /ConfigurationFile="C:\Assets\ConfigurationFile.ini"
+."$driveToMap\SQLServer2012SP3\Setup.exe" /ConfigurationFile="$driveToMap\ConfigurationFile.ini"
 
-Remove-SmbMapping -LocalPath $driveToMap -Force
+#Remove-SmbMapping -LocalPath $driveToMap -Force
 
 #SharePoint Install
 $AccountsToCreate = @("SP_CacheSuperUser","SP_CacheSuperReader","SP_Services","SP_PortalAppPool","SP_ProfilesAppPool","SP_SearchService","SP_SearchContent","SP_ProfileSync")
@@ -66,5 +66,5 @@ foreach($account in $AccountsToCreate)
 }
 
 #Perform the actual install
-$SPInstallJob = Start-Job -ScriptBlock {C:\Assets\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat}
-Start-Sleep -Seconds 2400 #wait for 40 minutes for above to complete
+$SPInstallJob = Start-Job -ScriptBlock {"$driveToMap\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat"}
+get-job | Wait-Job
