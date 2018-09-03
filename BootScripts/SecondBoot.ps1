@@ -78,7 +78,7 @@ $mountIso=Mount-DiskImage -ImagePath "$sqlBinaryLocation" -PassThru
 $isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
 
 $sqlsysadminaccounts = $env:USERDOMAIN + "\" + $env:USERNAME
-$setup = "($isoDriveLetter):\setup.exe"
+$setup = "$isoDriveLetter`:\setup.exe"
 $command = "cmd /c $setup /ACTION=Install /IACCEPTSQLSERVERLICENSETERMS /FEATURES=SQLEngine,ADV_SSMS /INSTANCENAME=MSSQLSERVER /Q /SQLSVCACCOUNT=SP_SQL /SQLSVCPASSWORD=$yourAdminPassword /INDICATEPROGRESS /SQLSYSADMINACCOUNTS=$sqlsysadminaccounts"
 Invoke-Expression -Command:$command
 Dismount-DiskImage -InputObject $mountIso
@@ -95,4 +95,4 @@ Dismount-DiskImage -InputObject $mountIso
 $SPInstallJob = Start-Job -ScriptBlock {"C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat"}
 get-job | Wait-Job
 #net use $driveToMap /delete
-Remove-Item C:\Temp -Recurse -Force -Confirm:$false
+#Remove-Item C:\Temp -Recurse -Force -Confirm:$false
