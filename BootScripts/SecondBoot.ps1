@@ -71,8 +71,9 @@ foreach($account in $AccountsToCreate)
     -Enabled $true
 }
 
-Get-Job | Wait-Job
+
 #SQL Install
+Wait-Job -Name SQL_Download
 $mountIso=Mount-DiskImage -ImagePath "$sqlBinaryLocation" -PassThru
 $isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
 
@@ -83,6 +84,7 @@ Invoke-Expression -Command:$command
 Dismount-DiskImage -InputObject $mountIso
 
 #extract SharePoint
+Wait-Job -Name SP_Download
 $mountIso=Mount-DiskImage -ImagePath "$sharepointBinaryLocation" -PassThru
 $isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
 Copy-Item -Container "$isoDriveLetter`:" -Destination "$driveToMap\SP\2016\SharePoint" -Recurse
