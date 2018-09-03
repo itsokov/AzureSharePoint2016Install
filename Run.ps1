@@ -23,7 +23,7 @@ $gitHubAssets='https://github.com/itsokov/AzureSharePoint2016Install/archive/mas
 
 
 
-Login-AzureRmAccount
+#Login-AzureRmAccount
 Get-AzureRmSubscription| select -First 1 | Select-AzureRmSubscription
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 
@@ -31,8 +31,8 @@ $storageAcct=New-AzureRmStorageAccount -Name $randSAName -ResourceGroupName $res
 $storageAccountShare=New-AzureStorageShare  -Name $storageAccountShareName  -Context $storageAcct.Context 
 $ScriptBlobKey = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $randSAName
 $ScriptBlobKey=$ScriptBlobKey[0].Value
-
-net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $ScriptBlobKey /user:$randSAName
+start-sleep -Seconds 10
+#net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $ScriptBlobKey /user:$randSAName
 
 #region JohnSavill
 
@@ -115,19 +115,17 @@ Remove-Item $file -Force -Confirm:$false
 
 
 $script=Get-Content C:\temp\BootScripts\FirstBoot.ps1
-$script=$script -replace "Pa55word",$yourAdminPassword
+$script=$script -replace "<your admin pass>",$yourAdminPassword
 Set-Content -Value $script -Path C:\temp\BootScripts\FirstBoot.ps1 -Encoding UTF8
 
 $script=Get-Content C:\temp\BootScripts\SecondBoot.ps1
-$script=$script -replace "Pa55word",$yourAdminPassword
+$script=$script -replace "<your admin pass>",$yourAdminPassword
 $script=$script -replace "<storage account name>",$randSAName
 $script=$script -replace "<storage account key>",$ScriptBlobKey
 $script=$script -replace "<SAShareName>",$storageAccountShareName
 Set-Content -Value $script -Path C:\temp\BootScripts\SecondBoot.ps1 -Encoding UTF8
 
-$xml=Get-Content "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
-$xml=$xml -replace "QD59r3cDZk74pYdYxF87", $yourAdminPassword
-Set-Content -Value $xml -Path "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
+
 
 #edit the sql script, below I need to upload it 
 
@@ -141,7 +139,7 @@ $blobName = "SecondBoot.ps1"
 $localFile = "C:\Temp\BootScripts\$blobName" 
 Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context -Force
 
-Copy-Item -Path C:\temp\SP -Destination $driveToMap -recurse -Force
+
 
 
 #Now make a DC by running the first boot script

@@ -2,6 +2,7 @@
 
 $netbiosname = 'contoso'
 $fqdomname = "$netbiosname.local"
+$yourAdminPassword="<your admin pass>"
 
 #endregion
 
@@ -19,7 +20,7 @@ Get-Disk -Number 3 | New-Partition -UseMaximumSize -DriveLetter F | Format-Volum
 Import-Module "Servermanager" #For Add-WindowsFeature
 Add-WindowsFeature AD-Domain-Services, DNS -IncludeManagementTools
 
-$SafePassPlain = 'Pa55word'
+$SafePassPlain = $yourAdminPassword
 $SafePass = ConvertTo-SecureString -string $SafePassPlain `
     -AsPlainText -force
 
