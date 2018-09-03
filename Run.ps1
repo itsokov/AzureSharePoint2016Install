@@ -9,8 +9,6 @@ $storageAccountShareName="assets"
 $randSAName= -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
 $SASKU = 'Standard_LRS'
 $driveToMap='X:'
-$sharepointBinaryLocation="$driveToMap\officeserver.img"
-$sqlBinaryLocation="$driveToMap\SQLServer2016SP2-FullSlipstream-x64-ENU.iso"
 $yourAdminPassword=Read-Host -Prompt "Please enter the password you will use for all accounts"
 $VirtNetName = 'VNPOC1'
 $VMName = -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
@@ -19,6 +17,7 @@ $ServerSKU="2016-Datacenter"
 $setupAccount='sp_setup'
 $scriptsContainer="scripts"
 $gitHubAssets='https://github.com/itsokov/AzureSharePoint2016Install/archive/master.zip'
+$netbiosname='contoso'
 #endregion
 
 
@@ -116,6 +115,7 @@ Remove-Item $file -Force -Confirm:$false
 
 $script=Get-Content C:\temp\BootScripts\FirstBoot.ps1
 $script=$script -replace "<your admin pass>",$yourAdminPassword
+$script=$script -replace "<your netbios name>",$netbiosname
 Set-Content -Value $script -Path C:\temp\BootScripts\FirstBoot.ps1 -Encoding UTF8
 
 $script=Get-Content C:\temp\BootScripts\SecondBoot.ps1
@@ -123,11 +123,16 @@ $script=$script -replace "<your admin pass>",$yourAdminPassword
 $script=$script -replace "<storage account name>",$randSAName
 $script=$script -replace "<storage account key>",$ScriptBlobKey
 $script=$script -replace "<SAShareName>",$storageAccountShareName
+$script=$script -replace "<your netbios name>",$netbiosname
+$script=$script -replace "<drive to map>",$driveToMap
+$script=$script -replace "<sharePoint iso source>",$sharepointBinaryUrl
+$script=$script -replace "<SQL Binary URL>",$sqlBinaryUrl
+$script=$script -replace "<storage account name>",$randSAName
+$script=$script -replace "<SAShareName>",$storageAccountShareName
+$script=$script -replace "<GitHub Assets>",$gitHubAssets
 Set-Content -Value $script -Path C:\temp\BootScripts\SecondBoot.ps1 -Encoding UTF8
 
 
-
-#edit the sql script, below I need to upload it 
 
 #Upload these scripts to the blob or file share
 
@@ -198,44 +203,5 @@ Write-Output "Installation complete" | timestamp
 
 
 
-
 ###delete share and blob container
-
-
-
-
-<#
-
-
-
-net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $ScriptBlobKey[0].Value /user:$randSAName
-#New-Item -Path "$driveToMap" -ItemType Directory -Name 'SharePointInstall'
-(New-Object System.Net.WebClient).DownloadFile($sharepointBinaryUrl, $sharepointBinaryLocation)
-
-
-### download SQL image
-(New-Object System.Net.WebClient).DownloadFile($sqlBinaryUrl, $sharepointBinaryLocation)
-
-### download GitHub Scripts and Config and create folder structure
-#(New-Object System.Net.WebClient).DownloadFile($autoSPInstallerScriptsUrl, "$driveToMap\autospinstaller.zip")
-
-
-
-
-### edit passwords in autospinstaller config
-$xml=Get-Content "$driveToMap\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
-$xml=$xml -replace "QD59r3cDZk74pYdYxF87", $yourAdminPassword
-Set-Content -Value $xml -Path "$driveToMap\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
-
-### extract sharepoint and SQL images
-
-$mountIso=Mount-DiskImage -ImagePath "$driveToMap\SQLServer2016SP2-FullSlipstream-x64-ENU.iso" -PassThru
-$isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
-
-Copy-Item -Container "$isoDriveLetter`:" -Destination "$driveToMap\SQLMedia" -Recurse
-Dismount-DiskImage -InputObject $mountIso
-
-#extract SharePoint iso
-
-#>
 

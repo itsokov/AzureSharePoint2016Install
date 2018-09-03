@@ -1,8 +1,8 @@
 ﻿#region variables
 
-$netbiosname = 'contoso'
+$netbiosname = '<your netbios name>'
 $fqdomname = "$netbiosname.local"
-$yourAdminPassword="<your admin pass>"
+$yourAdminPassword='<your admin pass>'
 
 #endregion
 

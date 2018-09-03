@@ -1,13 +1,15 @@
 ﻿#region variables
 $storkey = '<storage account key>'
-$sharepointBinaryUrl='https://download.microsoft.com/download/0/0/4/004EE264-7043-45BF-99E3-3F74ECAE13E5/officeserver.img'
-$driveToMap='X:'
+$sharepointBinaryUrl='<sharePoint iso source>'
+$driveToMap='<drive to map>'
 $sharepointBinaryLocation="$driveToMap\officeserver.img"
-$sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP2-FullSlipstream-x64-ENU.iso'
+$sqlBinaryUrl='<SQL Binary URL>'
 $sqlBinaryLocation="$driveToMap\SQLServer2016SP2-FullSlipstream-x64-ENU.iso"
-$netbiosname = 'contoso'
-$yourAdminPassword="<your admin pass>"
-
+$netbiosname = '<your netbios name>'
+$yourAdminPassword='<your admin pass>'
+$randSAName='<storage account name>'
+$storageAccountShareName='<SAShareName>'
+$gitHubAssets='<GitHub Assets>'
 #endregion variables
 
 #Add domain admin called Administrator
@@ -21,7 +23,7 @@ Add-ADGroupMember 'Domain Admins' administrator
 New-NetFirewallRule -DisplayName "MSSQL ENGINE TCP" -Direction Inbound -LocalPort 1433 -Protocol TCP -Action Allow
 New-NetFirewallRule -DisplayName "SharePoint TCP 2013" -Direction Inbound -LocalPort 2013 -Protocol TCP -Action Allow
 
-net use $driveToMap "\\<storage account name>.file.core.windows.net\<SAShareName>" $storkey /user:<storage account name> 
+net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $storkey /user:<storage account name> 
 
 #region copyand edit AutoSPInstaller files
 
@@ -48,21 +50,15 @@ Set-Content -Value $xml -Path "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.x
 Copy-Item -Path C:\temp\SP -Destination $driveToMap -recurse -Force
 Remove-Item C:\Temp -Recurse -Force -Confirm:$false
 
-#endregion
+#endregion copyand edit AutoSPInstaller files
 
 
 #SharePoint Setup files
-New-Item -Path "$driveToMap\" -ItemType Directory -Name 'SharePointInstall'
-Start-Job -Name SP_Download -ScriptBlock {(New-Object System.Net.WebClient).DownloadFile($sharepointBinaryUrl, $sharepointBinaryLocation)}
+Start-Job -Name SP_Download -ScriptBlock {param($sharepointBinaryUrl,$sharepointBinaryLocation)(New-Object System.Net.WebClient).DownloadFile($sharepointBinaryUrl, $sharepointBinaryLocation)} -ArgumentList $sharepointBinaryUrl,$sharepointBinaryLocation
 
 ### download SQL image
-Start-Job -Name SQL_Download -ScriptBlock {(New-Object System.Net.WebClient).DownloadFile($sqlBinaryUrl, $sqlBinaryLocation)}
+Start-Job -Name SQL_Download -ScriptBlock {param($sqlBinaryUrl, $sqlBinaryLocation)(New-Object System.Net.WebClient).DownloadFile($sqlBinaryUrl, $sqlBinaryLocation)} -ArgumentList $sqlBinaryUrl,$sqlBinaryLocation
 
-
-
-#Copy-Item -Recurse -Path X:\AutoSPInstaller -Destination C:\Assets\
-#Configuration files that make up SQL and SharePoint install including the SharePoint backup
-#Copy-Item -Recurse -Path X:\POCAzureScripts\* -Destination C:\Assets\
 
 #service account creation Install
 $AccountsToCreate = @("SP_CacheSuperUser","SP_CacheSuperReader","SP_Services","SP_PortalAppPool","SP_ProfilesAppPool","SP_SearchService","SP_SearchContent","SP_ProfileSync","SP_SQL")
@@ -96,5 +92,4 @@ Dismount-DiskImage -InputObject $mountIso
 #Perform SharePoint install
 $SPInstallJob = Start-Job -ScriptBlock {"$driveToMap\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat"}
 get-job | Wait-Job
-#Remove-SmbMapping *
 net use $driveToMap /delete
