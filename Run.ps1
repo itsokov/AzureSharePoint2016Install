@@ -7,7 +7,7 @@ $sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP
 $tempDownloadLocation='C:\temp'
 $storageAccountShareName="assets"
 $randSAName= -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
-$SASKU = 'Premium_LRS'
+$SASKU = 'Standard_LRS'
 $driveToMap='X:'
 $yourAdminPassword=Read-Host -Prompt "Please enter the password you will use for all accounts"
 $VirtNetName = 'VNPOC1'
@@ -22,14 +22,14 @@ $netbiosname='contoso'
 
 
 
-Login-AzureRmAccount
+#Login-AzureRmAccount
 Get-AzureRmSubscription| select -First 1 | Select-AzureRmSubscription
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 
 $storageAcct=New-AzureRmStorageAccount -Name $randSAName -ResourceGroupName $resourceGroupName -SkuName $SASKU -Location $location 
 #$storageAccountShare=New-AzureStorageShare  -Name $storageAccountShareName  -Context $storageAcct.Context 
-#$ScriptBlobKey = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $randSAName
-#$ScriptBlobKey=$ScriptBlobKey[0].Value
+$ScriptBlobKey = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $randSAName
+$ScriptBlobKey=$ScriptBlobKey[0].Value
 start-sleep -Seconds 10
 #net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $ScriptBlobKey /user:$randSAName
 
