@@ -2,9 +2,9 @@
 $storkey = '<storage account key>'
 $sharepointBinaryUrl='<sharePoint iso source>'
 $driveToMap='<drive to map>'
-$sharepointBinaryLocation="$driveToMap\officeserver.img"
+$sharepointBinaryLocation="C:\temp\officeserver.img"
 $sqlBinaryUrl='<SQL Binary URL>'
-$sqlBinaryLocation="$driveToMap\SQLServer2016SP2-FullSlipstream-x64-ENU.iso"
+$sqlBinaryLocation="C:\temp\SQLServer2016SP2-FullSlipstream-x64-ENU.iso"
 $netbiosname = '<your netbios name>'
 $yourAdminPassword='<your admin pass>'
 $randSAName='<storage account name>'
@@ -23,7 +23,7 @@ Add-ADGroupMember 'Domain Admins' administrator
 New-NetFirewallRule -DisplayName "MSSQL ENGINE TCP" -Direction Inbound -LocalPort 1433 -Protocol TCP -Action Allow
 New-NetFirewallRule -DisplayName "SharePoint TCP 2013" -Direction Inbound -LocalPort 2013 -Protocol TCP -Action Allow
 
-net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $storkey /user:<storage account name> 
+#net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $storkey /user:<storage account name> 
 
 #region copyand edit AutoSPInstaller files
 
@@ -40,15 +40,15 @@ $shell_app=new-object -com shell.application
 $zip_file = $shell_app.namespace($file) 
 $destination = $shell_app.namespace("c:\temp") 
 $destination.Copyhere($zip_file.items())
-Copy-Item -Path C:\Temp\AzureSharePoint2016Install-master\* -Destination C:\Temp -confirm:$false -Force -Recurse
+Copy-Item -Path C:\Temp\AzureSharePoint2016Install-master\* -Destination 'C:\Temp' -confirm:$false -Force -Recurse
 Remove-Item  C:\Temp\AzureSharePoint2016Install-master -Force -Confirm:$false -Recurse
 Remove-Item $file -Force -Confirm:$false
 
 $xml=Get-Content "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
 $xml=$xml -replace "QD59r3cDZk74pYdYxF87", $yourAdminPassword
 Set-Content -Value $xml -Path "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
-Copy-Item -Path C:\temp\SP -Destination $driveToMap -recurse -Force
-Remove-Item C:\Temp -Recurse -Force -Confirm:$false
+#Copy-Item -Path C:\temp\SP -Destination $driveToMap -recurse -Force
+#Remove-Item C:\Temp -Recurse -Force -Confirm:$false
 
 #endregion copyand edit AutoSPInstaller files
 
@@ -87,11 +87,12 @@ Dismount-DiskImage -InputObject $mountIso
 Wait-Job -Name SP_Download
 $mountIso=Mount-DiskImage -ImagePath "$sharepointBinaryLocation" -PassThru
 $isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
-Copy-Item -Container "$isoDriveLetter`:" -Destination "$driveToMap\SP\2016\SharePoint" -Recurse
+Copy-Item -Container "$isoDriveLetter`:" -Destination "C:\Temp\SP\2016\SharePoint" -Recurse
 Dismount-DiskImage -InputObject $mountIso
 
 
 #Perform SharePoint install
-$SPInstallJob = Start-Job -ScriptBlock {"$driveToMap\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat"}
+$SPInstallJob = Start-Job -ScriptBlock {"C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat"}
 get-job | Wait-Job
-net use $driveToMap /delete
+#net use $driveToMap /delete
+Remove-Item C:\Temp -Recurse -Force -Confirm:$false
