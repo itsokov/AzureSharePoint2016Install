@@ -22,14 +22,14 @@ $netbiosname='contoso'
 
 
 
-#Login-AzureRmAccount
+Login-AzureRmAccount
 Get-AzureRmSubscription| select -First 1 | Select-AzureRmSubscription
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 
 $storageAcct=New-AzureRmStorageAccount -Name $randSAName -ResourceGroupName $resourceGroupName -SkuName $SASKU -Location $location 
-$storageAccountShare=New-AzureStorageShare  -Name $storageAccountShareName  -Context $storageAcct.Context 
-$ScriptBlobKey = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $randSAName
-$ScriptBlobKey=$ScriptBlobKey[0].Value
+#$storageAccountShare=New-AzureStorageShare  -Name $storageAccountShareName  -Context $storageAcct.Context 
+#$ScriptBlobKey = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $randSAName
+#$ScriptBlobKey=$ScriptBlobKey[0].Value
 start-sleep -Seconds 10
 #net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $ScriptBlobKey /user:$randSAName
 
@@ -121,14 +121,12 @@ Set-Content -Value $script -Path C:\temp\BootScripts\FirstBoot.ps1 -Encoding UTF
 $script=Get-Content C:\temp\BootScripts\SecondBoot.ps1
 $script=$script -replace "<your admin pass>",$yourAdminPassword
 $script=$script -replace "<storage account name>",$randSAName
-$script=$script -replace "<storage account key>",$ScriptBlobKey
-$script=$script -replace "<SAShareName>",$storageAccountShareName
+#$script=$script -replace "<storage account key>",$ScriptBlobKey
+#$script=$script -replace "<SAShareName>",$storageAccountShareName
 $script=$script -replace "<your netbios name>",$netbiosname
 $script=$script -replace "<drive to map>",$driveToMap
 $script=$script -replace "<sharePoint iso source>",$sharepointBinaryUrl
 $script=$script -replace "<SQL Binary URL>",$sqlBinaryUrl
-$script=$script -replace "<storage account name>",$randSAName
-$script=$script -replace "<SAShareName>",$storageAccountShareName
 $script=$script -replace "<GitHub Assets>",$gitHubAssets
 Set-Content -Value $script -Path C:\temp\BootScripts\SecondBoot.ps1 -Encoding UTF8
 
