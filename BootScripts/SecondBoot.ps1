@@ -52,7 +52,7 @@ Set-Content -Value $xml -Path "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.x
 $sqlConfig=Get-Content "C:\temp\SQL\ConfigurationFile.ini"
 $sqlConfig=$sqlConfig -replace "<SQL Account>", "$netbiosname\SP_SQL"
 $sqlConfig=$sqlConfig -replace "<Sys admin>", "$netbiosname\$setupAccount"
-Set-Content -Value $xml -Path "C:\temp\SQL\ConfigurationFile.ini"
+Set-Content -Value $sqlConfig -Path "C:\temp\SQL\ConfigurationFile.ini"
 
 #Copy-Item -Path C:\temp\SP -Destination $driveToMap -recurse -Force
 #Remove-Item C:\Temp -Recurse -Force -Confirm:$false
