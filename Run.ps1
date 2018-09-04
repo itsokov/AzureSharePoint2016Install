@@ -1,14 +1,13 @@
 ﻿#region variables
 
-$resourceGroupName="SP2016Dev3"
+$resourceGroupName="SP2016Dev"
 $location="WestEurope"
 $sharepointBinaryUrl='https://itsokov.blob.core.windows.net/installblob/officeserver.img'
 $sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP2-FullSlipstream-x64-ENU.iso'
-$tempDownloadLocation='C:\temp'
 $storageAccountShareName="assets"
 $randSAName= -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
 $SASKU = 'Standard_LRS'
-$driveToMap='X:'
+#$driveToMap='X:'
 $yourAdminPassword=Read-Host -Prompt "Please enter the password you will use for all accounts"
 $VirtNetName = 'VNPOC1'
 $VMName = -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
@@ -22,7 +21,7 @@ $netbiosname='contoso'
 
 
 
-Login-AzureRmAccount
+#Login-AzureRmAccount
 Get-AzureRmSubscription| select -First 1 | Select-AzureRmSubscription
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 
@@ -120,11 +119,11 @@ Set-Content -Value $script -Path C:\temp\BootScripts\FirstBoot.ps1 -Encoding UTF
 
 $script=Get-Content C:\temp\BootScripts\SecondBoot.ps1
 $script=$script -replace "<your admin pass>",$yourAdminPassword
-$script=$script -replace "<storage account name>",$randSAName
+#$script=$script -replace "<storage account name>",$randSAName
 #$script=$script -replace "<storage account key>",$ScriptBlobKey
 #$script=$script -replace "<SAShareName>",$storageAccountShareName
 $script=$script -replace "<your netbios name>",$netbiosname
-$script=$script -replace "<drive to map>",$driveToMap
+#$script=$script -replace "<drive to map>",$driveToMap
 $script=$script -replace "<sharePoint iso source>",$sharepointBinaryUrl
 $script=$script -replace "<SQL Binary URL>",$sqlBinaryUrl
 $script=$script -replace "<GitHub Assets>",$gitHubAssets
