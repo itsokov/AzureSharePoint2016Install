@@ -10,6 +10,7 @@ $yourAdminPassword='<your admin pass>'
 $randSAName='<storage account name>'
 $storageAccountShareName='<SAShareName>'
 $gitHubAssets='<GitHub Assets>'
+$setupAccount='<Setup Account>'
 #endregion variables
 
 #Add domain admin called Administrator
@@ -47,6 +48,12 @@ Remove-Item $file -Force -Confirm:$false
 $xml=Get-Content "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
 $xml=$xml -replace "QD59r3cDZk74pYdYxF87", $yourAdminPassword
 Set-Content -Value $xml -Path "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
+
+$sqlConfig=Get-Content "C:\temp\SQL\ConfigurationFile.ini"
+$sqlConfig=$sqlConfig -replace "<SQL Account>", "$netbiosname\SP_SQL"
+$sqlConfig=$sqlConfig -replace "<Sys admin>", "$netbiosname\$setupAccount"
+Set-Content -Value $xml -Path "C:\temp\SQL\ConfigurationFile.ini"
+
 #Copy-Item -Path C:\temp\SP -Destination $driveToMap -recurse -Force
 #Remove-Item C:\Temp -Recurse -Force -Confirm:$false
 
@@ -61,14 +68,15 @@ Start-Job -Name SQL_Download -ScriptBlock {param($sqlBinaryUrl, $sqlBinaryLocati
 
 
 #service account creation Install
-$AccountsToCreate = @("SP_CacheSuperUser","SP_CacheSuperReader","SP_Services","SP_PortalAppPool","SP_ProfilesAppPool","SP_SearchService","SP_SearchContent","SP_ProfileSync","SP_SQL")
+$AccountsToCreate = @("SP_CacheSuperUser","SP_CacheSuperReader","SP_Services","SP_PortalAppPool","SP_ProfilesAppPool","SP_SearchService","SP_SearchContent","SP_ProfileSync","SP_SQL","SP_Farm")
 
 foreach($account in $AccountsToCreate)
 {
   New-ADUser -Name $account -GivenName $account -Surname $account `
     -SamAccountName $account -UserPrincipalName "$account@$netbiosname.local" `
     -AccountPassword (ConvertTo-SecureString -AsPlainText "$yourAdminPassword" -Force) `
-    -Enabled $true
+    -Enabled $true `
+    -PasswordNeverExpires $true
 }
 
 
@@ -81,6 +89,8 @@ $sqlsysadminaccounts = $env:USERDOMAIN + "\" + $env:USERNAME
 $setup = "$isoDriveLetter`:\setup.exe"
 $command = "cmd /c $setup /ACTION=Install /IACCEPTSQLSERVERLICENSETERMS /FEATURES=SQLEngine,ADV_SSMS /INSTANCENAME=MSSQLSERVER /Q /SQLSVCACCOUNT=SP_SQL /SQLSVCPASSWORD=$yourAdminPassword /INDICATEPROGRESS /SQLSYSADMINACCOUNTS=$sqlsysadminaccounts"
 Invoke-Expression -Command:$command
+#."$isoDriveLetter`:\Setup.exe" /ConfigurationFile="C:\Temp\SQL\ConfigurationFile.ini"
+
 Dismount-DiskImage -InputObject $mountIso
 
 #extract SharePoint

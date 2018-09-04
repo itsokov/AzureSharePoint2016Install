@@ -11,7 +11,7 @@
             <ParallelInstall>false</ParallelInstall>
         </RemoteInstall>
         <AutoAdminLogon Enable="true">
-            <Password>Pa$$w0rd</Password>
+            <Password>QD59r3cDZk74pYdYxF87</Password>
         </AutoAdminLogon>
         <Disable>
             <LoopbackCheck>true</LoopbackCheck>

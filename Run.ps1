@@ -128,6 +128,7 @@ $script=$script -replace "<drive to map>",$driveToMap
 $script=$script -replace "<sharePoint iso source>",$sharepointBinaryUrl
 $script=$script -replace "<SQL Binary URL>",$sqlBinaryUrl
 $script=$script -replace "<GitHub Assets>",$gitHubAssets
+$script=$script -replace "<Setup Account>",$setupAccount
 Set-Content -Value $script -Path C:\temp\BootScripts\SecondBoot.ps1 -Encoding UTF8
 
 
