@@ -87,7 +87,7 @@ $isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
 
 $sqlsysadminaccounts = $env:USERDOMAIN + "\" + $env:USERNAME
 $setup = "$isoDriveLetter`:\setup.exe"
-$command = "cmd /c $setup /ACTION=Install /IACCEPTSQLSERVERLICENSETERMS /FEATURES=SQLEngine,ADV_SSMS /INSTANCENAME=MSSQLSERVER /Q /SQLSVCACCOUNT=SP_SQL /SQLSVCPASSWORD=$yourAdminPassword /INDICATEPROGRESS /SQLSYSADMINACCOUNTS=$sqlsysadminaccounts"
+$command = "cmd /c $setup /ACTION=Install /IACCEPTSQLSERVERLICENSETERMS /FEATURES=SQLEngine /INSTANCENAME=MSSQLSERVER /Q /SQLSVCACCOUNT=$netbiosname\SP_SQL /SQLSVCPASSWORD=$yourAdminPassword /INDICATEPROGRESS /SQLSYSADMINACCOUNTS=$sqlsysadminaccounts"
 Invoke-Expression -Command:$command
 #."$isoDriveLetter`:\Setup.exe" /ConfigurationFile="C:\Temp\SQL\ConfigurationFile.ini"
 
