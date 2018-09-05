@@ -1,6 +1,6 @@
 ﻿#region variables
 
-$resourceGroupName="SP2016Dev6"
+$resourceGroupName="SP2016Dev7"
 $location="WestEurope"
 $sharepointBinaryUrl='https://itsokov.blob.core.windows.net/installblob/officeserver.img'
 $sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP2-FullSlipstream-x64-ENU.iso'
@@ -22,7 +22,8 @@ $netbiosname='contoso'
 
 
 #Login-AzureRmAccount
-(Get-AzureRmSubscription)[1] | Select-AzureRmSubscription
+#(Get-AzureRmSubscription)[1] | Select-AzureRmSubscription
+(Get-AzureRmContext -ListAvailable)[0] | Select-AzureRmContext
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 
 $storageAcct=New-AzureRmStorageAccount -Name $randSAName -ResourceGroupName $resourceGroupName -SkuName $SASKU -Location $location 
