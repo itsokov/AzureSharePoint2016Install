@@ -11,7 +11,7 @@ $SASKU = 'Standard_LRS'
 $yourAdminPassword=Read-Host -Prompt "Please enter the password you will use for all accounts"
 $VirtNetName = 'VNPOC1'
 $VMName = -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
-$VMSize ="Standard_DS2"
+$VMSize ="Standard_DS3"
 $ServerSKU="2016-Datacenter"
 $setupAccount='sp_setup'
 $scriptsContainer="scripts"
@@ -21,7 +21,7 @@ $netbiosname='contoso'
 
 
 
-#Login-AzureRmAccount
+Login-AzureRmAccount
 Get-AzureRmSubscription| select -First 1 | Select-AzureRmSubscription
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 
