@@ -49,10 +49,10 @@ $xml=Get-Content "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
 $xml=$xml -replace "QD59r3cDZk74pYdYxF87", $yourAdminPassword
 Set-Content -Value $xml -Path "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
 
-$sqlConfig=Get-Content "C:\temp\SQL\ConfigurationFile.ini"
-$sqlConfig=$sqlConfig -replace "<SQL Account>", "$netbiosname\SP_SQL"
-$sqlConfig=$sqlConfig -replace "<Sys admin>", "$netbiosname\$setupAccount"
-Set-Content -Value $sqlConfig -Path "C:\temp\SQL\ConfigurationFile.ini"
+#$sqlConfig=Get-Content "C:\temp\SQL\ConfigurationFile.ini"
+#$sqlConfig=$sqlConfig -replace "<SQL Account>", "$netbiosname\SP_SQL"
+#$sqlConfig=$sqlConfig -replace "<Sys admin>", "$netbiosname\$setupAccount"
+#Set-Content -Value $sqlConfig -Path "C:\temp\SQL\ConfigurationFile.ini"
 
 #Copy-Item -Path C:\temp\SP -Destination $driveToMap -recurse -Force
 #Remove-Item C:\Temp -Recurse -Force -Confirm:$false
@@ -85,9 +85,8 @@ Wait-Job -Name SQL_Download
 $mountIso=Mount-DiskImage -ImagePath "$sqlBinaryLocation" -PassThru
 $isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
 
-$sqlsysadminaccounts = $env:USERDOMAIN + "\" + $env:USERNAME
 $setup = "$isoDriveLetter`:\setup.exe"
-$command = "cmd /c $setup /ACTION=Install /IACCEPTSQLSERVERLICENSETERMS /FEATURES=SQLEngine /INSTANCENAME=MSSQLSERVER /Q /SQLSVCACCOUNT=$netbiosname\SP_SQL /SQLSVCPASSWORD=$yourAdminPassword /INDICATEPROGRESS /SQLSYSADMINACCOUNTS=$sqlsysadminaccounts"
+$command = "cmd /c $setup /ACTION=Install /IACCEPTSQLSERVERLICENSETERMS /FEATURES=SQLEngine /INSTANCENAME=MSSQLSERVER /Q /SQLSVCACCOUNT=$netbiosname\SP_SQL /SQLSVCPASSWORD=$yourAdminPassword /INDICATEPROGRESS /SQLSYSADMINACCOUNTS=$setupAccount"
 Invoke-Expression -Command:$command
 #."$isoDriveLetter`:\Setup.exe" /ConfigurationFile="C:\Temp\SQL\ConfigurationFile.ini"
 
