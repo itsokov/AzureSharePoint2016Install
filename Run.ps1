@@ -1,6 +1,6 @@
 ﻿#region variables
 
-$resourceGroupName="SP2016Dev"
+$resourceGroupName="SP2016Dev6"
 $location="WestEurope"
 $sharepointBinaryUrl='https://itsokov.blob.core.windows.net/installblob/officeserver.img'
 $sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP2-FullSlipstream-x64-ENU.iso'
@@ -11,7 +11,7 @@ $SASKU = 'Standard_LRS'
 $yourAdminPassword=Read-Host -Prompt "Please enter the password you will use for all accounts"
 $VirtNetName = 'VNPOC1'
 $VMName = -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
-$VMSize ="Standard_DS3"
+$VMSize ="Standard_DS3_v2"
 $ServerSKU="2016-Datacenter"
 $setupAccount='sp_setup'
 $scriptsContainer="scripts"
@@ -21,8 +21,8 @@ $netbiosname='contoso'
 
 
 
-Login-AzureRmAccount
-Get-AzureRmSubscription| select -First 1 | Select-AzureRmSubscription
+#Login-AzureRmAccount
+(Get-AzureRmSubscription)[1] | Select-AzureRmSubscription
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 
 $storageAcct=New-AzureRmStorageAccount -Name $randSAName -ResourceGroupName $resourceGroupName -SkuName $SASKU -Location $location 
