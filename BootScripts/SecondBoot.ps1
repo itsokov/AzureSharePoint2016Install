@@ -1,14 +1,14 @@
 ﻿#region variables
-$storkey = '<storage account key>'
+#$storkey = '<storage account key>'
 $sharepointBinaryUrl='<sharePoint iso source>'
-$driveToMap='<drive to map>'
+#$driveToMap='<drive to map>'
 $sharepointBinaryLocation="C:\temp\officeserver.img"
 $sqlBinaryUrl='<SQL Binary URL>'
 $sqlBinaryLocation="C:\temp\SQLServer2016SP2-FullSlipstream-x64-ENU.iso"
 $netbiosname = '<your netbios name>'
 $yourAdminPassword='<your admin pass>'
-$randSAName='<storage account name>'
-$storageAccountShareName='<SAShareName>'
+#$randSAName='<storage account name>'
+#$storageAccountShareName='<SAShareName>'
 $gitHubAssets='<GitHub Assets>'
 $setupAccount='<Setup Account>'
 #endregion variables
