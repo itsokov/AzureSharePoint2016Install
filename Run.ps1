@@ -1,6 +1,6 @@
 ﻿#region variables
 
-$resourceGroupName="SP2016Dev2"
+$resourceGroupName="SP2016Dev5"
 $location="WestEurope"
 $sharepointBinaryUrl='https://itsokov.blob.core.windows.net/installblob/officeserver.img'
 $sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP2-FullSlipstream-x64-ENU.iso'
@@ -9,8 +9,9 @@ $randSAName= -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
 $SASKU = 'Standard_LRS'
 #$driveToMap='X:'
 $yourAdminPassword=Read-Host -Prompt "Please enter the password you will use for all accounts"
-$VirtNetName = 'VNPOC1'
-$VMName = -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
+$VirtNetName =  -join ((97..122) | Get-Random -Count 5 | % {[char]$_})
+#$VMName = -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
+$VMName = 'VNPOC1'
 $VMSize ="Standard_DS3_v2"
 $ServerSKU="2016-Datacenter"
 $setupAccount='sp_setup'
@@ -21,8 +22,8 @@ $netbiosname='contoso'
 
 
 
-Login-AzureRmAccount
-(Get-AzureRmSubscription)[1] | Select-AzureRmSubscription
+#Login-AzureRmAccount
+(Get-AzureRmSubscription)[0] | Select-AzureRmSubscription
 #(Get-AzureRmContext -ListAvailable)[0] | Select-AzureRmContext
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 
@@ -140,7 +141,9 @@ $blobName = "SecondBoot.ps1"
 $localFile = "C:\Temp\BootScripts\$blobName" 
 Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context -Force
 
-
+$blobName = "Impersonated.ps1" 
+$localFile = "C:\Temp\BootScripts\$blobName" 
+Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context -Force
 
 
 #Now make a DC by running the first boot script
