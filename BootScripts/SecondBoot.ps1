@@ -92,6 +92,6 @@ $cred = new-object -typename System.Management.Automation.PSCredential `
 
 #Perform SharePoint install
 $SPInstallJob = Start-Job -ScriptBlock {C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat} -Credential $cred
-Start-Sleep -Seconds 2400 #wait for 40 minutes for above to complete
+#Start-Sleep -Seconds 2400 #wait for 40 minutes for above to complete
 
 Remove-Item C:\Temp -Recurse -Force -Confirm:$false #cleanup
