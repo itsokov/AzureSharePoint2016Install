@@ -85,9 +85,8 @@ Wait-Job -Name SQL_Download
 $mountIso=Mount-DiskImage -ImagePath "$sqlBinaryLocation" -PassThru
 $isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
 
-$sqlsysadminaccounts = $env:USERDOMAIN + "\" + $env:USERNAME
 $setup = "$isoDriveLetter`:\setup.exe"
-$command = "cmd /c $setup /ACTION=Install /IACCEPTSQLSERVERLICENSETERMS /FEATURES=SQLEngine /INSTANCENAME=MSSQLSERVER /Q /SQLSVCACCOUNT=$netbiosname\SP_SQL /SQLSVCPASSWORD=$yourAdminPassword /INDICATEPROGRESS /SQLSYSADMINACCOUNTS=$sqlsysadminaccounts"
+$command = "cmd /c $setup /ACTION=Install /IACCEPTSQLSERVERLICENSETERMS /FEATURES=SQLEngine /INSTANCENAME=MSSQLSERVER /Q /SQLSVCACCOUNT=$netbiosname\SP_SQL /SQLSVCPASSWORD=$yourAdminPassword /INDICATEPROGRESS /SQLSYSADMINACCOUNTS=$setupAccount"
 Invoke-Expression -Command:$command
 #."$isoDriveLetter`:\Setup.exe" /ConfigurationFile="C:\Temp\SQL\ConfigurationFile.ini"
 
@@ -100,9 +99,17 @@ $isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
 Copy-Item -Container "$isoDriveLetter`:" -Destination "C:\Temp\SP\2016\SharePoint" -Recurse
 Dismount-DiskImage -InputObject $mountIso
 
+$username = "contoso\sp_setup"
+$password = ConvertTo-SecureString -AsPlainText -String "Welcome20014" -Force
+$cred = new-object -typename System.Management.Automation.PSCredential `
+         -argumentlist $username, $password
+
 
 #Perform SharePoint install
-$SPInstallJob = Start-Job -ScriptBlock {"C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat"}
+SPInstallJob = Start-Job -ScriptBlock {"C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat"} -Credential $cred
 get-job | Wait-Job
+#$command ="C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat"
+#Invoke-Command $command -Credential $cred -ComputerName $env:COMPUTERNAME 
+
 #net use $driveToMap /delete
 #Remove-Item C:\Temp -Recurse -Force -Confirm:$false
