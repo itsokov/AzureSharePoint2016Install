@@ -106,7 +106,7 @@ $cred = new-object -typename System.Management.Automation.PSCredential `
 
 
 #Perform SharePoint install
-SPInstallJob = Start-Job -ScriptBlock {"C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat"} -Credential $cred
+SPInstallJob = Start-Job -ScriptBlock {C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat} -Credential $cred
 get-job | Wait-Job
 #$command ="C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat"
 #Invoke-Command $command -Credential $cred -ComputerName $env:COMPUTERNAME 
