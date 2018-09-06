@@ -13,14 +13,6 @@ $gitHubAssets='<GitHub Assets>'
 $setupAccount='<Setup Account>'
 #endregion variables
 
-#Add domain admin called Administrator
-New-ADUser -Name 'administrator' -GivenName 'admin' -Surname 'istrator' `
-    -SamAccountName 'administrator' -UserPrincipalName "administrator@$netbiosname.local" `
-    -AccountPassword (ConvertTo-SecureString -AsPlainText "$yourAdminPassword" -Force) `
-    -Enabled $true
-
-Add-ADGroupMember 'Domain Admins' administrator
-
 New-NetFirewallRule -DisplayName "MSSQL ENGINE TCP" -Direction Inbound -LocalPort 1433 -Protocol TCP -Action Allow
 New-NetFirewallRule -DisplayName "SharePoint TCP 2013" -Direction Inbound -LocalPort 2013 -Protocol TCP -Action Allow
 
@@ -28,7 +20,7 @@ New-NetFirewallRule -DisplayName "SharePoint TCP 2013" -Direction Inbound -Local
 
 #region copyand edit AutoSPInstaller files
 
-    #this section had to be moved from main script due to the network restrictions in DXC
+#this section had to be moved from main script due to the network restrictions in DXC
 
 New-Item -Path c:\ -Name Temp -ItemType Directory
 
@@ -49,13 +41,6 @@ $xml=Get-Content "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
 $xml=$xml -replace "QD59r3cDZk74pYdYxF87", $yourAdminPassword
 Set-Content -Value $xml -Path "C:\temp\SP\AutoSPInstaller\AutoSPInstallerInput.xml"
 
-#$sqlConfig=Get-Content "C:\temp\SQL\ConfigurationFile.ini"
-#$sqlConfig=$sqlConfig -replace "<SQL Account>", "$netbiosname\SP_SQL"
-#$sqlConfig=$sqlConfig -replace "<Sys admin>", "$netbiosname\$setupAccount"
-#Set-Content -Value $sqlConfig -Path "C:\temp\SQL\ConfigurationFile.ini"
-
-#Copy-Item -Path C:\temp\SP -Destination $driveToMap -recurse -Force
-#Remove-Item C:\Temp -Recurse -Force -Confirm:$false
 
 #endregion copyand edit AutoSPInstaller files
 
@@ -99,17 +84,14 @@ $isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
 Copy-Item -Container "$isoDriveLetter`:" -Destination "C:\Temp\SP\2016\SharePoint" -Recurse
 Dismount-DiskImage -InputObject $mountIso
 
-$username = "contoso\sp_setup"
-$password = ConvertTo-SecureString -AsPlainText -String "Welcome20014" -Force
+$username = "$netbiosname\$setupAccount"
+$password = ConvertTo-SecureString -AsPlainText -String "$yourAdminPassword" -Force
 $cred = new-object -typename System.Management.Automation.PSCredential `
          -argumentlist $username, $password
 
 
 #Perform SharePoint install
-SPInstallJob = Start-Job -ScriptBlock {C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat} -Credential $cred
-get-job | Wait-Job
-#$command ="C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat"
-#Invoke-Command $command -Credential $cred -ComputerName $env:COMPUTERNAME 
+$SPInstallJob = Start-Job -ScriptBlock {C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat} -Credential $cred
+Start-Sleep -Seconds 2400 #wait for 40 minutes for above to complete
 
-#net use $driveToMap /delete
-#Remove-Item C:\Temp -Recurse -Force -Confirm:$false
+Remove-Item C:\Temp -Recurse -Force -Confirm:$false #cleanup

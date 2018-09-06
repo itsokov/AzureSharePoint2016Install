@@ -1,6 +1,6 @@
 ﻿#region variables
 
-$resourceGroupName="SP2016Dev7"
+$resourceGroupName="SP2016Dev"
 $location="WestEurope"
 $sharepointBinaryUrl='https://itsokov.blob.core.windows.net/installblob/officeserver.img'
 $sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP2-FullSlipstream-x64-ENU.iso'
@@ -22,8 +22,8 @@ $netbiosname='contoso'
 
 
 #Login-AzureRmAccount
-#(Get-AzureRmSubscription)[1] | Select-AzureRmSubscription
-(Get-AzureRmContext -ListAvailable)[0] | Select-AzureRmContext
+(Get-AzureRmSubscription)[1] | Select-AzureRmSubscription
+#(Get-AzureRmContext -ListAvailable)[0] | Select-AzureRmContext
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 
 $storageAcct=New-AzureRmStorageAccount -Name $randSAName -ResourceGroupName $resourceGroupName -SkuName $SASKU -Location $location 
@@ -32,9 +32,6 @@ $ScriptBlobKey = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupN
 $ScriptBlobKey=$ScriptBlobKey[0].Value
 start-sleep -Seconds 10
 #net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $ScriptBlobKey /user:$randSAName
-
-#region JohnSavill
-
 
 filter timestamp {"$(Get-Date -Format G): $_"}
 
@@ -197,9 +194,6 @@ Set-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName -Lo
 Remove-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName -Name SecondBootScript -Force
 
 Write-Output "Installation complete" | timestamp
-
-#endregion JohnSavill
-
 
 
 ###delete share and blob container
