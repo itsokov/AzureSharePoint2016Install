@@ -1,6 +1,6 @@
 ﻿#region variables
 
-$resourceGroupName="SP2016Dev5"
+$resourceGroupName="SP2016Dev6"
 $location="WestEurope"
 $sharepointBinaryUrl='https://itsokov.blob.core.windows.net/installblob/officeserver.img'
 $sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP2-FullSlipstream-x64-ENU.iso'
@@ -9,9 +9,9 @@ $randSAName= -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
 $SASKU = 'Standard_LRS'
 #$driveToMap='X:'
 $yourAdminPassword=Read-Host -Prompt "Please enter the password you will use for all accounts"
-$VirtNetName =  -join ((97..122) | Get-Random -Count 5 | % {[char]$_})
-#$VMName = -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
-$VMName = 'VNPOC1'
+#$VirtNetName =  -join ((97..122) | Get-Random -Count 5 | % {[char]$_})
+$VirtNetName = 'VNPOC1'
+$VMName = -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
 $VMSize ="Standard_DS3_v2"
 $ServerSKU="2016-Datacenter"
 $setupAccount='sp_setup'
@@ -178,19 +178,26 @@ Remove-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName 
 
 #Now run the second boot script to install SQL and SharePoint
 $ScriptName = "SecondBoot.ps1"
+$ScriptName2="Impersonated.ps1"
 $ExtensionName = 'SecondBootScript'
 $timestamp = (Get-Date).Ticks
  
 $ScriptLocation = $ScriptBlobURL + $ScriptName
+$ScriptLocation2 = $ScriptBlobURL + $ScriptName2
 $ScriptExe = ".\$ScriptName"
  
 $PrivateConfiguration = @{"storageAccountName" = "$randSAName";"storageAccountKey" = "$ScriptBlobKey"} 
-$PublicConfiguration = @{"fileUris" = [Object[]]"$ScriptLocation";"timestamp" = "$timestamp";"commandToExecute" = "powershell.exe -ExecutionPolicy Unrestricted -Command $ScriptExe"}
+$PublicConfiguration = @{"fileUris" = [Object[]]"$ScriptLocation","$ScriptLocation2";"timestamp" = "$timestamp";"commandToExecute" = "powershell.exe -ExecutionPolicy Unrestricted -Command $ScriptExe"}
  
 Write-Output "Injecting Second Boot PowerShell" | timestamp
 Set-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName -Location $Location `
  -Name $ExtensionName -Publisher $Publisher -ExtensionType $ExtensionType -TypeHandlerVersion $Version `
  -Settings $PublicConfiguration -ProtectedSettings $PrivateConfiguration
+
+ 
+ ##et-AzureRmVMCustomScriptExtension -ContainerName scripts -FileName 'SecondBoot.ps1', 'Impersonated.ps1' -Run 'SecondBoot.ps1' -StorageAccountName $randSAName `
+ #                                   -StorageAccountKey $ScriptBlobKey -VMName $VMName -Location $location -ResourceGroupName $resourceGroupName -Name test
+
  
 ((Get-AzureRmVM -Name $VMName -ResourceGroupName $resourceGroupName -Status).Extensions | Where-Object {$_.Name -eq $ExtensionName}).Substatuses
 
