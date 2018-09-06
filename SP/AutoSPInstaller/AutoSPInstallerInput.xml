@@ -330,7 +330,7 @@
                 </DBAlias>
             </Database>
         </WordAutomationService>
-        <AppManagementService Provision="localhost">
+        <AppManagementService Provision="false">
             <Name>App Management Service</Name>
             <ProxyName>App Management Service</ProxyName>
             <AppDomain>apps.contoso.com</AppDomain>
