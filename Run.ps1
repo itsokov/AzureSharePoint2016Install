@@ -21,7 +21,7 @@ $netbiosname='contoso'
 
 
 
-#Login-AzureRmAccount
+Login-AzureRmAccount
 (Get-AzureRmSubscription)[1] | Select-AzureRmSubscription
 #(Get-AzureRmContext -ListAvailable)[0] | Select-AzureRmContext
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
