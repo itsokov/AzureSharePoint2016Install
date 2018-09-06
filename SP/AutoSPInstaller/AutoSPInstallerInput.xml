@@ -7,7 +7,7 @@
         <SKU>Enterprise</SKU>
         <OfflineInstall>false</OfflineInstall>
         <PauseAfterInstall>false</PauseAfterInstall>
-        <RemoteInstall Enable="false">
+        <RemoteInstall Enable="true">
             <ParallelInstall>false</ParallelInstall>
         </RemoteInstall>
         <AutoAdminLogon Enable="true">
