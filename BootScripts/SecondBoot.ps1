@@ -55,7 +55,8 @@ foreach($account in $AccountsToCreate)
     -SamAccountName $account -UserPrincipalName "$account@$netbiosname.local" `
     -AccountPassword (ConvertTo-SecureString -AsPlainText "$yourAdminPassword" -Force) `
     -Enabled $true `
-    -PasswordNeverExpires $true
+    -PasswordNeverExpires $true `
+    -Server $env:COMPUTERNAME
 }
 
 
