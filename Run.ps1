@@ -21,14 +21,16 @@ $gitHubAssets='https://github.com/itsokov/AzureSharePoint2016Install/archive/mas
 filter timestamp {"$(Get-Date -Format G): $_"}
 
 if (Get-Module -ListAvailable -Name AzureRM) {
-    Write-Host "Azure RM Module exists. Continuing with the next steps." | filter
+    Write-Output "Azure RM Module exists. Continuing with the next steps." | timestamp
 } else {
-    Write-Host "Module does not exist. Installing..." | filter
+    Write-Output "Module does not exist. Installing..." | timestamp
     Install-Module AzureRM
 }
 
 Login-AzureRmAccount
-Write-Host "Selecting first available subscription." | filter
+Write-Output "Installation has started, check back in 1 hour" | timestamp
+
+Write-Output "Selecting first available subscription." | timestamp
 (Get-AzureRmSubscription)[0] | Select-AzureRmSubscription
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 $storageAcct=New-AzureRmStorageAccount -Name $randSAName -ResourceGroupName $resourceGroupName -SkuName $SASKU -Location $location 
