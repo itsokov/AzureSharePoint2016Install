@@ -92,9 +92,9 @@ $cred = new-object -typename System.Management.Automation.PSCredential `
 
 #Perform SharePoint install
 #$SPInstallJob = Start-Job -ScriptBlock {C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat} -Credential $cred
-#Invoke-Command -ScriptBlock {C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat} -Credential $cred -ComputerName $env:COMPUTERNAME
-$command = $file = $PSScriptRoot + "\Impersonated.ps1"
-Invoke-Command -FilePath $command -Credential $cred -ComputerName $env:COMPUTERNAME
+Invoke-Command -ScriptBlock {C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat;start-sleep 4800} -Credential $cred -ComputerName $env:COMPUTERNAME
+#$command = $file = $PSScriptRoot + "\Impersonated.ps1"
+#Invoke-Command -FilePath $command -Credential $cred -ComputerName $env:COMPUTERNAME
 #Start-Sleep -Seconds 2400 #wait for 40 minutes for above to complete
 
 #Remove-Item C:\Temp -Recurse -Force -Confirm:$false #cleanup

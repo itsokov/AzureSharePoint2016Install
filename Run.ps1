@@ -23,7 +23,7 @@ $netbiosname='contoso'
 
 
 #Login-AzureRmAccount
-(Get-AzureRmSubscription)[0] | Select-AzureRmSubscription
+(Get-AzureRmSubscription)[1] | Select-AzureRmSubscription
 #(Get-AzureRmContext -ListAvailable)[0] | Select-AzureRmContext
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
 
@@ -141,9 +141,9 @@ $blobName = "SecondBoot.ps1"
 $localFile = "C:\Temp\BootScripts\$blobName" 
 Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context -Force
 
-$blobName = "Impersonated.ps1" 
-$localFile = "C:\Temp\BootScripts\$blobName" 
-Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context -Force
+#$blobName = "Impersonated.ps1" 
+#$localFile = "C:\Temp\BootScripts\$blobName" 
+#Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context -Force
 
 
 #Now make a DC by running the first boot script
@@ -178,16 +178,16 @@ Remove-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName 
 
 #Now run the second boot script to install SQL and SharePoint
 $ScriptName = "SecondBoot.ps1"
-$ScriptName2="Impersonated.ps1"
+#$ScriptName2="Impersonated.ps1"
 $ExtensionName = 'SecondBootScript'
 $timestamp = (Get-Date).Ticks
  
 $ScriptLocation = $ScriptBlobURL + $ScriptName
-$ScriptLocation2 = $ScriptBlobURL + $ScriptName2
+#$ScriptLocation2 = $ScriptBlobURL + $ScriptName2
 $ScriptExe = ".\$ScriptName"
  
 $PrivateConfiguration = @{"storageAccountName" = "$randSAName";"storageAccountKey" = "$ScriptBlobKey"} 
-$PublicConfiguration = @{"fileUris" = [Object[]]"$ScriptLocation","$ScriptLocation2";"timestamp" = "$timestamp";"commandToExecute" = "powershell.exe -ExecutionPolicy Unrestricted -Command $ScriptExe"}
+$PublicConfiguration = @{"fileUris" = [Object[]]"$ScriptLocation";"timestamp" = "$timestamp";"commandToExecute" = "powershell.exe -ExecutionPolicy Unrestricted -Command $ScriptExe"}
  
 Write-Output "Injecting Second Boot PowerShell" | timestamp
 Set-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName -Location $Location `
