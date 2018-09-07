@@ -359,7 +359,7 @@
             <Name>Work Management Service Application</Name>
             <ProxyName>Work Management Service Application</ProxyName>
         </WorkManagementService>
-        <MachineTranslationService Provision="localhost">
+        <MachineTranslationService Provision="false">
             <Name>Machine Translation Service</Name>
             <ProxyName>Machine Translation Service</ProxyName>
             <Database>

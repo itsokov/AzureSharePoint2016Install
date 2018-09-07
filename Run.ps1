@@ -1,6 +1,6 @@
 ﻿#region variables
 
-$resourceGroupName="SP2016Dev"
+$resourceGroupName="SP2016Dev2"
 $location="WestEurope"
 $sharepointBinaryUrl='https://itsokov.blob.core.windows.net/installblob/officeserver.img'
 $sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP2-FullSlipstream-x64-ENU.iso'
@@ -27,7 +27,7 @@ if (Get-Module -ListAvailable -Name AzureRM) {
     Install-Module AzureRM
 }
 
-Login-AzureRmAccount
+#Login-AzureRmAccount
 Write-Output "Installation has started, check back in 1 hour" | timestamp
 
 Write-Output "Selecting first available subscription." | timestamp
