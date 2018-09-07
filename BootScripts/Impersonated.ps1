@@ -1,1 +1,0 @@
-C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat

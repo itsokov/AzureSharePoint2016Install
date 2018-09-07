@@ -1,40 +1,41 @@
 ﻿#region variables
 
-$resourceGroupName="SP2016Dev6"
+$resourceGroupName="SP2016Dev"
 $location="WestEurope"
 $sharepointBinaryUrl='https://itsokov.blob.core.windows.net/installblob/officeserver.img'
 $sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP2-FullSlipstream-x64-ENU.iso'
 $storageAccountShareName="assets"
 $randSAName= -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
 $SASKU = 'Standard_LRS'
-#$driveToMap='X:'
 $yourAdminPassword=Read-Host -Prompt "Please enter the password you will use for all accounts"
-#$VirtNetName =  -join ((97..122) | Get-Random -Count 5 | % {[char]$_})
 $VirtNetName = 'VNPOC1'
 $VMName = -join ((97..122) | Get-Random -Count 9 | % {[char]$_})
 $VMSize ="Standard_DS3_v2"
 $ServerSKU="2016-Datacenter"
+$netbiosname='contoso'
 $setupAccount='sp_setup'
 $scriptsContainer="scripts"
 $gitHubAssets='https://github.com/itsokov/AzureSharePoint2016Install/archive/master.zip'
-$netbiosname='contoso'
 #endregion
 
+filter timestamp {"$(Get-Date -Format G): $_"}
 
+if (Get-Module -ListAvailable -Name AzureRM) {
+    Write-Host "Azure RM Module exists. Continuing with the next steps." | filter
+} else {
+    Write-Host "Module does not exist. Installing..." | filter
+    Install-Module AzureRM
+}
 
-#Login-AzureRmAccount
-(Get-AzureRmSubscription)[1] | Select-AzureRmSubscription
-#(Get-AzureRmContext -ListAvailable)[0] | Select-AzureRmContext
+Login-AzureRmAccount
+Write-Host "Selecting first available subscription." | filter
+(Get-AzureRmSubscription)[0] | Select-AzureRmSubscription
 $resourceGroup=New-AzureRmResourceGroup "$resourceGroupName" -Location $location
-
 $storageAcct=New-AzureRmStorageAccount -Name $randSAName -ResourceGroupName $resourceGroupName -SkuName $SASKU -Location $location 
-#$storageAccountShare=New-AzureStorageShare  -Name $storageAccountShareName  -Context $storageAcct.Context 
 $ScriptBlobKey = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $randSAName
 $ScriptBlobKey=$ScriptBlobKey[0].Value
 start-sleep -Seconds 10
-#net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $ScriptBlobKey /user:$randSAName
 
-filter timestamp {"$(Get-Date -Format G): $_"}
 
 #Create Resources for new deployment
 Write-Output "Setting up VM resources and variables" | timestamp
@@ -94,14 +95,14 @@ Write-Output "VM creation complete" | timestamp
 ###create scripts container
 New-AzureStorageContainer -Name $scriptsContainer -Context $storageAcct.Context -Permission Off
 
-#download locally Scripts from GitHyb and edit the Storage Account Keys and passwords
+#download locally Scripts from GitHub and edit the Storage Account Keys and passwords
 New-Item -Path c:\ -Name Temp -ItemType Directory
 
 $file = "c:\temp\gitassets.zip"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 (New-Object System.Net.WebClient).DownloadFile($gitHubAssets, "$file")
 
-    # Unzip the file to specified location
+# Unzip the file to specified location
 $shell_app=new-object -com shell.application 
 $zip_file = $shell_app.namespace($file) 
 $destination = $shell_app.namespace("c:\temp") 
@@ -118,18 +119,12 @@ Set-Content -Value $script -Path C:\temp\BootScripts\FirstBoot.ps1 -Encoding UTF
 
 $script=Get-Content C:\temp\BootScripts\SecondBoot.ps1
 $script=$script -replace "<your admin pass>",$yourAdminPassword
-#$script=$script -replace "<storage account name>",$randSAName
-#$script=$script -replace "<storage account key>",$ScriptBlobKey
-#$script=$script -replace "<SAShareName>",$storageAccountShareName
 $script=$script -replace "<your netbios name>",$netbiosname
-#$script=$script -replace "<drive to map>",$driveToMap
 $script=$script -replace "<sharePoint iso source>",$sharepointBinaryUrl
 $script=$script -replace "<SQL Binary URL>",$sqlBinaryUrl
 $script=$script -replace "<GitHub Assets>",$gitHubAssets
 $script=$script -replace "<Setup Account>",$setupAccount
 Set-Content -Value $script -Path C:\temp\BootScripts\SecondBoot.ps1 -Encoding UTF8
-
-
 
 #Upload these scripts to the blob or file share
 
@@ -140,10 +135,6 @@ Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob 
 $blobName = "SecondBoot.ps1" 
 $localFile = "C:\Temp\BootScripts\$blobName" 
 Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context -Force
-
-#$blobName = "Impersonated.ps1" 
-#$localFile = "C:\Temp\BootScripts\$blobName" 
-#Set-AzureStorageBlobContent -File $localFile -Container $scriptsContainer -Blob $blobName -Context $storageAcct.Context -Force
 
 
 #Now make a DC by running the first boot script
@@ -178,12 +169,10 @@ Remove-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName 
 
 #Now run the second boot script to install SQL and SharePoint
 $ScriptName = "SecondBoot.ps1"
-#$ScriptName2="Impersonated.ps1"
 $ExtensionName = 'SecondBootScript'
 $timestamp = (Get-Date).Ticks
  
 $ScriptLocation = $ScriptBlobURL + $ScriptName
-#$ScriptLocation2 = $ScriptBlobURL + $ScriptName2
 $ScriptExe = ".\$ScriptName"
  
 $PrivateConfiguration = @{"storageAccountName" = "$randSAName";"storageAccountKey" = "$ScriptBlobKey"} 
@@ -194,16 +183,15 @@ Set-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName -Lo
  -Name $ExtensionName -Publisher $Publisher -ExtensionType $ExtensionType -TypeHandlerVersion $Version `
  -Settings $PublicConfiguration -ProtectedSettings $PrivateConfiguration
 
- 
- ##et-AzureRmVMCustomScriptExtension -ContainerName scripts -FileName 'SecondBoot.ps1', 'Impersonated.ps1' -Run 'SecondBoot.ps1' -StorageAccountName $randSAName `
- #                                   -StorageAccountKey $ScriptBlobKey -VMName $VMName -Location $location -ResourceGroupName $resourceGroupName -Name test
-
- 
 ((Get-AzureRmVM -Name $VMName -ResourceGroupName $resourceGroupName -Status).Extensions | Where-Object {$_.Name -eq $ExtensionName}).Substatuses
+
+Write-Output "Waiting 5 minutes for reboot to complete" | timestamp
+Start-Sleep -Seconds 300 #Wait 5 minutes
+
 
 Remove-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName -Name SecondBootScript -Force
 
-Write-Output "Installation complete" | timestamp
+Write-Output "You can now login to $($pip.DnsSettings.Fqdn) with $setupAccount and $yourAdminPassword. The installation will be done in 40 minutes" | timestamp
 
 
 ###delete share and blob container

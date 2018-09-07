@@ -1,22 +1,16 @@
 ﻿#region variables
-#$storkey = '<storage account key>'
 $sharepointBinaryUrl='<sharePoint iso source>'
-#$driveToMap='<drive to map>'
 $sharepointBinaryLocation="C:\temp\officeserver.img"
 $sqlBinaryUrl='<SQL Binary URL>'
 $sqlBinaryLocation="C:\temp\SQLServer2016SP2-FullSlipstream-x64-ENU.iso"
 $netbiosname = '<your netbios name>'
 $yourAdminPassword='<your admin pass>'
-#$randSAName='<storage account name>'
-#$storageAccountShareName='<SAShareName>'
 $gitHubAssets='<GitHub Assets>'
 $setupAccount='<Setup Account>'
 #endregion variables
 
 New-NetFirewallRule -DisplayName "MSSQL ENGINE TCP" -Direction Inbound -LocalPort 1433 -Protocol TCP -Action Allow
 New-NetFirewallRule -DisplayName "SharePoint TCP 2013" -Direction Inbound -LocalPort 2013 -Protocol TCP -Action Allow
-
-#net use $driveToMap "\\$randSAName.file.core.windows.net\$storageAccountShareName" $storkey /user:<storage account name> 
 
 #region copyand edit AutoSPInstaller files
 
@@ -73,7 +67,6 @@ $isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
 $setup = "$isoDriveLetter`:\setup.exe"
 $command = "cmd /c $setup /ACTION=Install /IACCEPTSQLSERVERLICENSETERMS /FEATURES=SQLEngine /INSTANCENAME=MSSQLSERVER /Q /SQLSVCACCOUNT=$netbiosname\SP_SQL /SQLSVCPASSWORD=$yourAdminPassword /INDICATEPROGRESS /SQLSYSADMINACCOUNTS=$setupAccount"
 Invoke-Expression -Command:$command
-#."$isoDriveLetter`:\Setup.exe" /ConfigurationFile="C:\Temp\SQL\ConfigurationFile.ini"
 
 Dismount-DiskImage -InputObject $mountIso
 
@@ -84,17 +77,14 @@ $isoDriveLetter = ($mountIso | Get-Volume).DriveLetter
 Copy-Item -Container "$isoDriveLetter`:" -Destination "C:\Temp\SP\2016\SharePoint" -Recurse
 Dismount-DiskImage -InputObject $mountIso
 
+
+#Perform SharePoint install
 $username = "$netbiosname\$setupAccount"
 $password = ConvertTo-SecureString -AsPlainText -String "$yourAdminPassword" -Force
 $cred = new-object -typename System.Management.Automation.PSCredential `
          -argumentlist $username, $password
 
-
-#Perform SharePoint install
-#$SPInstallJob = Start-Job -ScriptBlock {C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat} -Credential $cred
-Invoke-Command -ScriptBlock {C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat;start-sleep 4800} -Credential $cred -ComputerName $env:COMPUTERNAME
-#$command = $file = $PSScriptRoot + "\Impersonated.ps1"
-#Invoke-Command -FilePath $command -Credential $cred -ComputerName $env:COMPUTERNAME
-#Start-Sleep -Seconds 2400 #wait for 40 minutes for above to complete
+Invoke-Command -ScriptBlock {C:\temp\SP\AutoSPInstaller\AutoSPInstallerLaunch.bat;start-sleep 600} -Credential $cred -ComputerName $env:COMPUTERNAME
+Restart-Computer -Force
 
 #Remove-Item C:\Temp -Recurse -Force -Confirm:$false #cleanup
