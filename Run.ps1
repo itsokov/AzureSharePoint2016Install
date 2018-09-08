@@ -1,6 +1,6 @@
 ﻿#region variables
 
-$resourceGroupName="SP2016Dev2"
+$resourceGroupName="SP2016Dev"
 $location="WestEurope"
 $sharepointBinaryUrl='https://itsokov.blob.core.windows.net/installblob/officeserver.img'
 $sqlBinaryUrl='https://itsokov.blob.core.windows.net/installblob/SQLServer2016SP2-FullSlipstream-x64-ENU.iso'
@@ -27,8 +27,8 @@ if (Get-Module -ListAvailable -Name AzureRM) {
     Install-Module AzureRM
 }
 
-Login-AzureRmAccount
-Write-Output "Installation has started, check back in 1 hour" | timestamp
+#Login-AzureRmAccount
+Write-Output "Installation has started, check back in 1.5 hours" | timestamp
 
 Write-Output "Selecting first available subscription." | timestamp
 (Get-AzureRmSubscription)[0] | Select-AzureRmSubscription
@@ -163,8 +163,8 @@ Set-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName -Lo
  
 ((Get-AzureRmVM -Name $VMName -ResourceGroupName $resourceGroupName -Status).Extensions | Where-Object {$_.Name -eq $ExtensionName}).Substatuses
 
-Write-Output "Waiting 5 minutes for reboot to complete" | timestamp
-Start-Sleep -Seconds 300 #Wait 5 minutes
+Write-Output "Waiting 3 minutes for reboot to complete" | timestamp
+Start-Sleep -Seconds 180 #Wait 3 minutes
 
 #Have to remove the previous before creating a new one
 Remove-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName -Name FirstBootScript -Force
@@ -187,13 +187,13 @@ Set-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName -Lo
 
 ((Get-AzureRmVM -Name $VMName -ResourceGroupName $resourceGroupName -Status).Extensions | Where-Object {$_.Name -eq $ExtensionName}).Substatuses
 
-Write-Output "Waiting 5 minutes for reboot to complete" | timestamp
-Start-Sleep -Seconds 300 #Wait 5 minutes
+Write-Output "Waiting 2 minutes for reboot to complete" | timestamp
+Start-Sleep -Seconds 120 #Wait 2 minutes
 
 
 Remove-AzureRmVMExtension -ResourceGroupName $resourceGroupName -VMName $VMName -Name SecondBootScript -Force
 
-Write-Output "You can now login to $($pip.DnsSettings.Fqdn) with $setupAccount and $yourAdminPassword. The installation will be done in 40 minutes" | timestamp
+Write-Output "You can now login to $($pip.DnsSettings.Fqdn) with $netbiosname\$setupAccount and $yourAdminPassword. The installation will be done in 40 minutes" | timestamp
 
 
 ###delete share and blob container
