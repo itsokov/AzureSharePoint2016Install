@@ -27,7 +27,7 @@ if (Get-Module -ListAvailable -Name AzureRM) {
     Install-Module AzureRM
 }
 
-#Login-AzureRmAccount
+Login-AzureRmAccount
 Write-Output "Installation has started, check back in 1.5 hours" | timestamp
 
 Write-Output "Selecting first available subscription." | timestamp
